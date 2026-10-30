@@ -236,6 +236,24 @@ nav.tabs button[data-tab="manitam"][aria-current="page"]{color:var(--t-manita)}
 :root[data-theme="dark"] .fab{color:#1B1526}
 .fab svg{width:26px;height:26px}
 @media (min-width:800px){.fab{right:calc(50% - 380px + 4px)}}
+.micfab{position:fixed;z-index:26;right:max(86px,calc(env(safe-area-inset-right,0px) + 86px));bottom:calc(80px + env(safe-area-inset-bottom,0px));width:48px;height:48px;border-radius:16px;border:1px solid var(--line);background:var(--surface);color:var(--lilac-deep);display:grid;place-items:center;box-shadow:0 4px 14px rgb(80 50 140 / .18)}
+.micfab svg{width:22px;height:22px}
+@media (min-width:800px){.micfab{right:calc(50% - 380px + 72px)}}
+.vmic{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding-top:4px}
+.micbig{width:76px;height:76px;border-radius:50%;border:0;background:var(--lilac-deep);color:var(--on-lilac);display:grid;place-items:center}
+:root[data-theme="dark"] .micbig{color:#1B1526}
+.micbig svg{width:34px;height:34px}
+.micbig.on{background:var(--t-regl);animation:micpulse 1.2s ease-in-out infinite}
+@keyframes micpulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--t-regl) 45%,transparent)}50%{box-shadow:0 0 0 14px color-mix(in srgb,var(--t-regl) 0%,transparent)}}
+@media (prefers-reduced-motion:reduce){.micbig.on{animation:none}}
+.vheard{font-size:17px;font-weight:600;text-align:center;overflow-wrap:anywhere}
+.vcard{background:var(--bg);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:6px;font-size:14.5px;overflow-wrap:anywhere}
+.vcard ul{margin:0;padding-left:18px}
+.vcard.act{background:var(--lilac-soft)}
+.vcard .vmain{font-weight:700;font-size:16px}
+.vcard.done{background:color-mix(in srgb,var(--ok) 14%,var(--surface));color:var(--ok);font-weight:700}
+.vhelp summary{cursor:pointer;font-weight:700;color:var(--lilac-deep);font-size:13.5px}
+.vhelp ul{margin:8px 0 0;padding-left:18px;font-size:13.5px;color:var(--muted);display:flex;flex-direction:column;gap:3px}
 
 /* sheet */
 .overlay{position:fixed;inset:0;z-index:40;background:rgb(20 12 35 / .45);display:flex;align-items:flex-end;justify-content:center}
@@ -367,6 +385,7 @@ body{margin:0}
   <main id="view"></main>
 </div>
 
+<button class="micfab" id="micfab" aria-label="Sesli komut"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
 <button class="fab" id="fab" aria-label="Yeni ekle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
 
 <nav class="tabs" aria-label="Bölümler"><div class="in">
@@ -380,7 +399,7 @@ body{margin:0}
 <div id="sheetSlot"></div>
 <div id="toastSlot"></div>
 
-<script>window.COCO_DIRECT = {"iv":"GT4RPiErDCWpSAmR","ct":"droM0tYT+EHubAWqxL1VPAP3tb18cY40PwTOeS6CiiP3mLqetMAuKkX+Zrv/GpL+21wi5x+CYB4DkMHEA983G4ElWIdx/AwBTdnAjyR0AvJtD+BalDgzY4j6OLowmcHxXJgeouEgK1+J2r5F+NMExOVpAuYl31Zd+lWXYVLhc+afICl/R8+kINdTx/whQ8K6kN5+muUgXTKP1VrxSyCClKM7q9Ko","t":"coco"};</script>
+<script>window.COCO_DIRECT = {"iv":"VprnY5kxFiokVVdi","ct":"LoK887wGGmm81xJh48SAMNaL8NhTH3n1uY8xIAlK3CwWKCtTM9+iv43AJocR7W37wi+zvU+GmX/oRjAaSQv7ongcitJ2A5yBh48584PWm47FyFHDhj7AB3iZrXL1QYNccuQTRUNOrh7+W88W4LDgBP8azq1FV1/jH6J1pLeFMwfMMLtJx91XxHddqzB641A0o4gnFqIPVu9KvKQ37kn1hb/0xsii","t":"coco"};</script>
 <script>
 (() => {
 // ---------- types ----------
@@ -1381,16 +1400,16 @@ function openSheet(html, onMount, noFocus){
   if (!noFocus) { const f = sh.querySelector("input,select,textarea,button:not(.iconbtn)"); f && f.focus(); }
   return sh;
 }
-function closeSheet(){ slot.innerHTML = ""; lastFocus && lastFocus.focus && lastFocus.focus(); }
+function closeSheet(){ try { rec && rec.abort(); } catch {} slot.innerHTML = ""; lastFocus && lastFocus.focus && lastFocus.focus(); }
 const closeBtn = `<button class="iconbtn" data-close aria-label="Kapat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>`;
 const confirmDel = (box, msg, yes) => {
   box.innerHTML = `<div class="confirm"><span style="flex:1 1 160px">${msg}</span><button type="button" class="btn sm danger" data-yes>Evet, sil</button></div>`;
   box.querySelector("[data-yes]").addEventListener("click", yes);
 };
 
-function eventSheet(id, day, presetType){
+function eventSheet(id, day, presetType, preset){
   const e = id ? state.events.find(x => x.id === id) : null;
-  const v = e ? {...e} : {title:"", type:presetType || "ders", date:day || selDay || today(), start:"10:00", end:"11:00", repeat:"none", place:"", note:"", students:[]};
+  const v = e ? {...e} : {title:"", type:presetType || "ders", date:day || selDay || today(), start:"10:00", end:"11:00", repeat:"none", place:"", note:"", students:[], ...(preset || {})};
   const occ = day || v.date;
   const att = e ? (e.att[occ] || []) : [];
   openSheet(`
@@ -1460,9 +1479,9 @@ function eventSheet(id, day, presetType){
     });
 }
 
-function taskSheet(id, kind){
+function taskSheet(id, kind, preset){
   const t = id ? state.tasks.find(x => x.id === id) : null;
-  const v = t ? {...t} : {title:"", kind: kind || "odev", course:"", due: addDays(today(),7)};
+  const v = t ? {...t} : {title:"", kind: kind || "odev", course:"", due: addDays(today(),7), ...(preset || {})};
   const courses = [...new Set(state.events.filter(e => e.type === "ders").map(e => e.title))];
   openSheet(`
     <div class="head"><h2>${t ? "Görevi düzenle" : "Yeni ödev / sınav"}</h2>${closeBtn}</div>
@@ -1924,6 +1943,322 @@ function backupSheet(){
   });
 }
 
+// ---------- voice commands ----------
+// JS \b only knows ASCII letters, so "çarşamba" or "özel" would never match; these treat
+// Turkish letters as letters.
+const UB = "(?:(?<=[\\p{L}\\p{N}])(?![\\p{L}\\p{N}])|(?<![\\p{L}\\p{N}])(?=[\\p{L}\\p{N}]))";
+const URe = (src, flags = "") => new RegExp(src.replace(/\\b/g, UB), flags.includes("u") ? flags : flags + "u");
+const U = re => URe(re.source, re.flags);
+// Speech becomes text through the browser's own recognizer (Safari/Chrome, Turkish); the text is read
+// with plain Turkish rules below. Anything that changes records is shown for confirmation first.
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+const VOICE_REPLY = "coco.voiceReply";
+const voiceReplyOn = () => lsRead(VOICE_REPLY) !== "0";
+function speak(text){
+  if (!voiceReplyOn() || !window.speechSynthesis || !text) return;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text); u.lang = "tr-TR";
+    const v = speechSynthesis.getVoices().find(x => /^tr/i.test(x.lang)); if (v) u.voice = v;
+    speechSynthesis.speak(u);
+  } catch {}
+}
+const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const capTr = s => s ? s.charAt(0).toLocaleUpperCase("tr") + s.slice(1) : s;
+const sayTime = hm => { const [h, m] = hm.split(":").map(Number); return m ? `${h} ${pad(m)}` : `${h}`; };
+
+// "on sekizde" -> "18de", "altı buçukta" -> "6 buçukta"; speech engines usually give digits already
+const UNITS = {bir:1, iki:2, "üç":3, "dört":4, "beş":5, "altı":6, yedi:7, sekiz:8, dokuz:9};
+const TENS = {on:10, yirmi:20, otuz:30, "kırk":40, elli:50};
+const NUM_SUFFIX = /^(|'?(da|de|ta|te|dan|den|tan|ten|ya|ye|a|e|ı|i|u|ü|yı|yi|nda|nde|ında|inde))$/;
+function numToken(tok){
+  for (const [w, n] of Object.entries(TENS)) if (tok.startsWith(w) && /^(|'?(da|de|dan|den))$/.test(tok.slice(w.length))) return [n, tok.slice(w.length).replace("'", ""), true];
+  for (const [w, n] of Object.entries(UNITS)) if (tok.startsWith(w) && NUM_SUFFIX.test(tok.slice(w.length))) return [n, tok.slice(w.length).replace("'", ""), false];
+  return null;
+}
+function normalizeCmd(raw){
+  let t = low(raw).replace(/[’`´]/g, "'").replace(U(/(\d)\.(\d{2})\b/g), "$1:$2").replace(/[!?,;"“”()]/g, " ").replace(/\s+/g, " ").trim();
+  const toks = t.split(" "), out = [];
+  for (let i = 0; i < toks.length; i++) {
+    const a = numToken(toks[i]);
+    if (!a) { out.push(toks[i]); continue; }
+    const b = a[2] && !a[1] && i + 1 < toks.length ? numToken(toks[i + 1]) : null;
+    if (b && !b[2]) { out.push(String(a[0] + b[0]) + b[1]); i++; }
+    else out.push(String(a[0]) + a[1]);
+  }
+  return out.join(" ");
+}
+
+const WEEKDAYS = [["pazartesi",1],["salı",2],["çarşamba",3],["perşembe",4],["cumartesi",6],["cuma",5],["pazar",0]];
+const MONTHS = ["ocak","şubat","mart","nisan","mayıs","haziran","temmuz","ağustos","eylül","ekim","kasım","aralık"];
+function parseDate(t){
+  const T = today();
+  if (U(/\b(öbür gün|yarından sonra)/).test(t)) return addDays(T, 2);
+  if (U(/\byarın/).test(t)) return addDays(T, 1);
+  if (U(/\bbugün/).test(t)) return T;
+  let m = t.match(URe(`\\b(\\d{1,2}) (${MONTHS.join("|")})`));
+  if (m) {
+    let y = +T.slice(0, 4), d = `${y}-${pad(MONTHS.indexOf(m[2]) + 1)}-${pad(+m[1])}`;
+    if (d < T) d = `${y + 1}${d.slice(4)}`;
+    return d;
+  }
+  if ((m = t.match(U(/\bayın (\d{1,2})/)))) {
+    let d = `${T.slice(0, 7)}-${pad(+m[1])}`;
+    if (d < T) { const n = parse(T); n.setMonth(n.getMonth() + 1); d = `${ymd(n).slice(0, 7)}-${pad(+m[1])}`; }
+    return d;
+  }
+  for (const [w, wd] of WEEKDAYS) if (URe(`\\b${w}`).test(t)) {
+    if (U(/\bhaftaya\b/).test(t)) return addDays(mondayOf(T), 7 + (wd + 6) % 7);
+    return addDays(T, (wd - parse(T).getDay() + 7) % 7);
+  }
+  return null;
+}
+function parseTime(t){
+  let h = null, min = 0, m;
+  if ((m = t.match(U(/\b(\d{1,2}):(\d{2})/)))) { h = +m[1]; min = +m[2]; }
+  else if ((m = t.match(U(/\b(\d{1,2}) (\d{2})'?(da|de|ta|te)\b/))) && +m[2] < 60) { h = +m[1]; min = +m[2]; }
+  else if ((m = t.match(U(/\bsaat (\d{1,2})\b/))) || (m = t.match(U(/\bsaat (\d{1,2})'?\S*/))) || (m = t.match(U(/\b(\d{1,2})'?(da|de|ta|te)\b/))) || (m = t.match(U(/\b(\d{1,2}) buçuk/)))) {
+    h = +m[1]; if (URe(`\\b${m[1]} buçuk`).test(t)) min = 30;
+  }
+  if (h === null || h > 23 || min > 59) return null;
+  if (U(/\b(akşam|gece|öğleden sonra)/).test(t) && h < 12) h += 12;
+  else if (U(/\böğle/).test(t) && h < 6) h += 12;
+  else if (!U(/\bsabah/).test(t) && h >= 1 && h <= 7) h += 12;   // "6'da seans" almost always means 18:00
+  let dur = null;
+  if ((m = t.match(U(/\b(\d+) saat(lik)?\b/))) && !URe(`saat ${m[1]}\\b`).test(t)) dur = +m[1] * 60;
+  if (U(/\bbir buçuk saat/).test(t) || U(/\b1 buçuk saat/).test(t)) dur = 90;
+  if (U(/\byarım saat/).test(t)) dur = 30;
+  if ((m = t.match(U(/\b(\d+) dakika/)))) dur = +m[1];
+  let end = null;
+  if ((m = t.match(U(/\b(\d{1,2})(?::(\d{2}))?'?(?:dan|den|tan|ten) (\d{1,2})(?::(\d{2}))?'?(?:a|e|ya|ye)? ?kadar/)))) {
+    let eh = +m[3]; if (eh < h % 12 + 12 && eh <= 12 && h >= 12) eh += 12;
+    end = `${pad(eh)}:${pad(+(m[4] || 0))}`;
+  }
+  return {start: `${pad(h)}:${pad(min)}`, dur, end};
+}
+const plusMin = (hm, n) => { const v = Math.min(23 * 60 + 59, toMin(hm) + n); return `${pad(Math.floor(v / 60))}:${pad(v % 60)}`; };
+const studentsIn = t => state.students.filter(s => {
+  const full = low(s.name), first = full.split(/\s+/)[0];
+  return URe(`(^|\\s)${escRe(full)}`).test(t) || (first.length > 1 && URe(`(^|\\s)${escRe(first)}`).test(t));
+});
+function manitaNamed(t){
+  const m = state.manita, me = meWho();
+  const names = [m.nick, (m.name || "").split(" ")[0], me ? PEOPLE[otherOf(me)].ad : "", "manitam", "manitama", "sevgilim", "sevgilime"].map(low).filter(x => x && x.length > 1);
+  return names.some(n => URe(`(^|\\s)${escRe(n)}`).test(t));
+}
+// remove dates, times, verbs and names so what is left can serve as a title
+function leftover(t, extra = []){
+  const drop = [
+    U(/\b(bugün|yarın|öbür gün|yarından sonra|haftaya)\S*/g), URe(`\\b(${WEEKDAYS.map(w => w[0]).join("|")})\\S*`, "g"),
+    URe(`\\b\\d{1,2} (${MONTHS.join("|")})\\S*`, "g"), U(/\bayın \d+\S*/g), U(/\bsaat\b/g), U(/\b\d{1,2}(:\d{2})?('?\S*)?/g),
+    U(/\b(sabah|öğlen|öğle|öğleden sonra|akşam|gece|buçuk)\S*/g), U(/\b(saatlik|dakikalık|kadar|her hafta|her)\b/g),
+    U(/\b(ekle|ekler misin|ekleyin|koy|oluştur|kaydet|yaz|planla|ayarla|lütfen|bir|için|ile|ve|olarak|var|takvime|takvimime)\b/g),
+    ...extra,
+  ];
+  for (const r of drop) t = t.replace(r, " ");
+  return t.replace(/\s+/g, " ").trim();
+}
+// text after a keyword, taken from the original words so casing survives
+function textAfter(raw, re){
+  const m = low(raw).match(re); if (!m) return "";
+  return raw.slice(m.index + m[0].length).replace(/^[\s:,-]+/, "").replace(/^(olarak|ekle|yaz|şöyle)\s+/i, "").trim();
+}
+
+const VOICE_HELP = [
+  "Yarın saat 6'da Zeynep ile özel seans ekle",
+  "Cuma 10'da Anatomi dersi ekle, her hafta",
+  "Anatomi sınavı 5 Kasım'da",
+  "Bugün ne var? · Yarın ne var? · Bu hafta ne var?",
+  "Zeynep'e not: bel ağrısı azaldı",
+  "Zeynep geldi (bugünkü seansında yoklama)",
+  "Zeynep'in kaç dersi kaldı?",
+  "Manitama not: akşam sinemaya gidiyoruz",
+  "Hediye fikri: kulaklık",
+  "Regl başladı · Regl bitti · Regl ne zaman?",
+  "Su içtim · 2 bardak su içtim",
+];
+
+function dayReport(d){
+  const evs = eventsOn(d), tks = tasksOn(d).filter(x => !x.done), sps = specialsOn(d);
+  const when = d === today() ? "Bugün" : d === addDays(today(), 1) ? "Yarın" : capTr(fmtLong(d));
+  if (!evs.length && !tks.length && !sps.length) return {lines:[`${when} için kayıt yok.`], say:`${when} için kayıt yok.`};
+  const lines = [...evs.map(e => `${e.start}  ${e.title}${e.students.length ? " · " + e.students.map(id => state.students.find(s => s.id === id)?.name.split(" ")[0]).filter(Boolean).join(", ") : ""}`),
+    ...tks.map(x => `Teslim: ${x.title}`), ...sps.map(x => x.t)];
+  const say = `${when} ${evs.length ? `${evs.length} planın var. ` + evs.map(e => `Saat ${sayTime(e.start)}'da ${e.title}`).join(". ") : ""}${tks.length ? `. Teslim: ${tks.map(x => x.title).join(", ")}` : ""}${sps.length ? `. ${sps.map(x => x.t).join(", ")}` : ""}.`;
+  return {lines, say};
+}
+
+// returns {kind:"answer"|"action"|"unknown", lines, say, run?, edit?}
+function interpret(raw){
+  const t = normalizeCmd(raw);
+  if (!t) return {kind:"unknown"};
+  const answer = (lines, say) => ({kind:"answer", lines: [].concat(lines), say: say || [].concat(lines).join(". ")});
+  const action = (lines, say, run, edit) => ({kind:"action", lines, say, run, edit});
+  const date = parseDate(t), studs = studentsIn(t);
+
+  if (U(/\b(ne yapabilirsin|neler söyleyebilirim|yardım|komutlar)/).test(t)) return answer(VOICE_HELP, "Örnek komutları ekrana yazdım.");
+
+  if (U(/\b(regl|adet)/).test(t)) {
+    if (U(/\b(ne zaman|kaç gün|gecik)/).test(t)) {
+      const on = ongoing(); if (on) return answer(`Regl ${daysBetween(on.start, today()) + 1}. gün.`);
+      const nx = nextPeriod(); if (!nx) return answer("Henüz regl kaydı yok.");
+      const n = daysBetween(today(), nx);
+      return answer(n > 0 ? `Sonraki regl tahminen ${fmtLong(nx)}, ${n} gün sonra.` : n === 0 ? "Regl bugün bekleniyor." : `Regl ${-n} gün gecikti.`);
+    }
+    const d = date || today();
+    if (U(/\b(bitti|sona erdi|kesildi)/).test(t)) return action([`Regl bitti · ${capTr(fmtLong(d))}`], "Regl bitti olarak işaretleyeyim mi?", () => { reglEnd(d); return "Regl bitişi kaydedildi."; });
+    if (U(/\b(başladı|geldi|oldum)/).test(t)) return action([`Regl başladı · ${capTr(fmtLong(d))}`], "Regl başlangıcını kaydedeyim mi?", () => { reglStart(d); return "Regl başlangıcı kaydedildi."; });
+  }
+
+  if (U(/\bsu\b/).test(t) && U(/\b(içtim|ekle|bardak|ne kadar|kaç)/).test(t)) {
+    const cur = state.water[today()] || 0;
+    if (U(/\b(ne kadar|kaç)/).test(t)) return answer(`Bugün ${cur} bardak, ${(cur * GLASS_ML).toLocaleString("tr-TR")} mililitre su içtin.`);
+    const m = t.match(U(/\b(\d+) bardak/)), k = m ? +m[1] : 1;
+    return action([`${k} bardak su · bugün toplam ${cur + k}`], `${k} bardak su ekleyeyim mi?`, () => { state.water = {[today()]: Math.min(30, cur + k)}; return `Bugün ${cur + k} bardak oldu.`; });
+  }
+
+  if (U(/\bhediye/).test(t)) {
+    const text = textAfter(raw, /hediye( fikri| fikrim| olarak)?/);
+    if (!text) return answer("Hediye fikrini de söyle: Hediye fikri, kulaklık.");
+    return action([`Hediye fikri: ${text}`], `Hediye fikri olarak ${text} ekleyeyim mi?`, () => { state.manita.gifts.unshift({id:uid(), text, done:false}); return "Hediye fikri eklendi."; });
+  }
+
+  if (U(/(^|\s)(not|notu|notuna|notlarına)(\s|:|$)|\bnot (al|düş|ekle)/).test(t)) {
+    const text = textAfter(raw, U(/\bnot(u|una|larına)?( al| düş| ekle)?\b:?/)) || "";
+    if (!text) return answer("Notun kendisini de söyle. Örneğin: Zeynep'e not, bel ağrısı azaldı.");
+    if (studs.length === 1 && !manitaNamed(t.replace(new RegExp(escRe(low(studs[0].name.split(" ")[0])), "g"), ""))) {
+      const s = studs[0];
+      return action([`${s.name} için not`, text, capTr(fmtLong(today()))], `${s.name.split(" ")[0]} için notu kaydedeyim mi?`, () => { s.notes.push({id:uid(), date:today(), text}); return "Not öğrencinin sayfasına eklendi."; });
+    }
+    if (manitaNamed(t)) return action(["Manitam · Notlar ve anılar", text], "Notu Manitam sayfasına kaydedeyim mi?", () => { state.manita.notes.push({id:uid(), date: date || today(), text}); return "Not Manitam sayfasına eklendi."; });
+    if (studs.length > 1) return answer(`Birden fazla öğrenci adı duydum: ${studs.map(s => s.name).join(", ")}. Tek bir öğrenciyle söyle.`);
+    return answer("Notu kime yazayım? Öğrenci adıyla ya da “Manitama not” diye söyle.");
+  }
+
+  if (studs.length && U(/\b(kaç ders|ders(i|leri)? kaldı|paket)/).test(t)) {
+    return answer(studs.map(s => { const l = leftOf(s); return l > 0 ? `${s.name}: ${l} ders kaldı.` : `${s.name}: paketi bitti.`; }));
+  }
+
+  if (studs.length && U(/\b(geldi|geldiler|katıldı|derse geldi)\b/).test(t)) {
+    const d = today(), nowM = new Date().getHours() * 60 + new Date().getMinutes(), lines = [], todo = [];
+    for (const s of studs) {
+      const evs = eventsOn(d).filter(e => PILATES(e.type) && e.students.includes(s.id));
+      if (!evs.length) { lines.push(`${s.name}: bugün kayıtlı olduğu seans yok`); continue; }
+      const e = evs.sort((a, b) => Math.abs(toMin(a.start) - nowM) - Math.abs(toMin(b.start) - nowM))[0];
+      if ((e.att[d] || []).includes(s.id)) { lines.push(`${s.name}: ${e.start} ${e.title} için zaten işaretli`); continue; }
+      lines.push(`${s.name} geldi · ${e.start} ${e.title}`); todo.push([e, s]);
+    }
+    if (!todo.length) return answer(lines);
+    return action(lines, "Yoklamaya işaretleyeyim mi?", () => { for (const [e, s] of todo) e.att[d] = [...(e.att[d] || []), s.id]; return "Yoklama işaretlendi, paketlerden düşüldü."; });
+  }
+
+  if (U(/\b(ne var|neler var|programım|programımda|planım|ajandam|ne yapıyorum)/).test(t)) {
+    if (U(/\bbu hafta/).test(t)) {
+      const ws = mondayOf(today()), lines = [];
+      for (let i = 0; i < 7; i++) { const d = addDays(ws, i), evs = eventsOn(d); if (evs.length) lines.push(`${WD[i]}: ${evs.map(e => `${e.start} ${e.title}`).join(", ")}`); }
+      return answer(lines.length ? lines : ["Bu hafta kayıt yok."], lines.length ? `Bu hafta ${lines.length} gün planın var.` : "Bu hafta kayıt yok.");
+    }
+    const r = dayReport(date || today()); return answer(r.lines, r.say);
+  }
+
+  const taskKind = U(/\b(sınav|vize|final|bütünleme|quiz)/).test(t) ? "sinav" : U(/\bsunum/).test(t) ? "sunum" : U(/\b(ödev|teslim|rapor)/).test(t) ? "odev" : "";
+  if (taskKind && U(/\b(ne zaman|var mı|neler)\b/).test(t)) {
+    const open = state.tasks.filter(x => !x.done && x.due >= today()).sort((a, b) => a.due < b.due ? -1 : 1);
+    const word = leftover(t, [U(/\b(ne zaman|var mı|neler|sınav\S*|vize\S*|final\S*|ödev\S*|sunum\S*|teslim\S*)\b/g)]);
+    const hit = word ? open.filter(x => low(x.title + " " + x.course).includes(word.split(" ")[0])) : open.filter(x => taskKind === "sinav" ? x.kind === "sinav" : x.kind !== "sinav");
+    if (!hit.length) return answer(word ? `“${word}” ile ilgili yaklaşan kayıt bulamadım.` : "Yaklaşan kayıt yok.");
+    return answer(hit.slice(0, 5).map(x => `${x.title}: ${fmtLong(x.due)} (${daysBetween(today(), x.due)} gün)`));
+  }
+  if (taskKind) {
+    const title = capTr(leftover(t, [U(/\b(ekle\S*|var)\b/g)])) || TASKKINDS[taskKind];
+    const course = capTr(leftover(t, [U(/\b(sınav|vize|final|bütünleme|quiz|ödev|teslim|rapor|sunum)\S*/g)]).split(" ").slice(0, 3).join(" "));
+    const due = date || addDays(today(), 7);
+    const lines = [`${TASKKINDS[taskKind]}: ${title}`, `${capTr(fmtLong(due))}${date ? "" : " (tarih söylemedin, 1 hafta sonrasına koydum)"}`];
+    const data = {title, kind: taskKind, course, due};
+    return action(lines, `${title}, ${fmtLong(due)} olarak ekleyeyim mi?`, () => { state.tasks.push({id:uid(), done:false, ...data}); return "Ödev ve sınavlara eklendi."; }, () => taskSheet(null, taskKind, data));
+  }
+
+  const tm = parseTime(t);
+  const wantsAdd = U(/\b(ekle|koy|oluştur|kaydet|planla|ayarla|randevu|seans|ders|görüşme|toplantı)/).test(t);
+  if (tm || (wantsAdd && date)) {
+    let type = "kisisel";
+    if (studs.length || U(/\b(seans|pilates|reformer|grup)/).test(t)) type = U(/\bgrup/).test(t) || studs.length > 1 ? "pilates" : "ozel";
+    else if (U(/\b(ders|dersi|okul|lab)\b/).test(t)) type = "ders";
+    else if (U(/\b(danışan|görüşme|staj|poliklinik)/).test(t)) type = "danisan";
+    const nameDrop = studs.map(s => URe(`\\b${escRe(low(s.name.split(" ")[0]))}\\S*`, "g"));
+    const typeDrop = type === "ders" ? [U(/\b(dersi|ders)\b/g)] : PILATES(type) ? [U(/\b(özel|seans\S*|pilates|grup|ders\S*)\b/g)] : [];
+    const title = capTr(leftover(t, [...nameDrop, ...typeDrop])) || {ozel:"Özel seans", pilates:"Pilates grup", ders:"Ders", danisan:"Görüşme", kisisel:"Kişisel plan"}[type];
+    const start = tm ? tm.start : "10:00";
+    const end = tm && tm.end ? tm.end : plusMin(start, tm && tm.dur ? tm.dur : PILATES(type) ? 50 : 60);
+    const d = date || today();
+    const data = {title, type, date:d, start, end, repeat: U(/\bher (hafta|pazartesi|salı|çarşamba|perşembe|cuma|cumartesi|pazar)/).test(t) ? "weekly" : "none", place:"", note:"", students: PILATES(type) ? studs.map(s => s.id) : [], prog:""};
+    const lines = [`${TYPES[type].ad}: ${title}`, `${capTr(fmtLong(d))} · ${start}–${end}${data.repeat === "weekly" ? " · her hafta" : ""}`];
+    if (data.students.length) lines.push("Öğrenci: " + studs.map(s => s.name).join(", "));
+    if (!tm) lines.push("Saat söylemedin, 10:00'a koydum.");
+    return action(lines, `${d === today() ? "Bugün" : d === addDays(today(), 1) ? "Yarın" : fmtLong(d)} saat ${sayTime(start)}'da ${title} ekleyeyim mi?`,
+      () => { state.events.push({id:uid(), att:{}, skip:[], ...data}); selDay = d; return "Takvime eklendi."; },
+      () => eventSheet(null, d, type, data));
+  }
+
+  return {kind:"unknown"};
+}
+
+const micSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>`;
+let rec = null;
+function voiceSheet(autoStart){
+  openSheet(`
+    <div class="head"><h2>Sesli komut</h2>${closeBtn}</div>
+    <div class="vmic">${SpeechRec ? `<button type="button" class="micbig" id="v-mic" aria-label="Konuş">${micSvg}</button>` : ""}
+      <div class="small muted" id="v-state">${SpeechRec ? "Mikrofona dokun ve konuş" : "Bu tarayıcı sesi doğrudan dinleyemiyor. Klavyedeki mikrofon tuşuyla söyleyebilir ya da yazabilirsin."}</div></div>
+    <div class="vheard" id="v-heard" hidden></div>
+    <form id="v-form" class="inline"><input class="input" id="v-input" placeholder="ya da yaz: yarın 6'da Zeynep ile seans" autocomplete="off" aria-label="Komut"><button class="btn">Gönder</button></form>
+    <div id="v-result"></div>
+    <details class="vhelp"><summary>Neler söyleyebilirim?</summary><ul>${VOICE_HELP.map(x => `<li>${esc(x)}</li>`).join("")}</ul></details>
+    <label class="toggle small"><input type="checkbox" id="v-reply" ${voiceReplyOn() ? "checked" : ""}> Cevapları sesli oku</label>`, sh => {
+      const st = sh.querySelector("#v-state"), heard = sh.querySelector("#v-heard"), res = sh.querySelector("#v-result"), mic = sh.querySelector("#v-mic");
+      sh.querySelector("#v-reply").addEventListener("change", ev => { lsWrite(VOICE_REPLY, ev.target.checked ? "1" : "0"); if (!ev.target.checked) try { speechSynthesis.cancel(); } catch {} });
+      const showResult = r => {
+        if (r.kind === "unknown") {
+          res.innerHTML = `<div class="vcard"><b>Anlayamadım.</b><div class="small muted">Şöyle deneyebilirsin:</div><ul class="small">${VOICE_HELP.slice(0, 5).map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>`;
+          speak("Anlayamadım, tekrar söyler misin?"); return;
+        }
+        if (r.kind === "answer") { res.innerHTML = `<div class="vcard">${r.lines.map(l => `<div>${esc(l)}</div>`).join("")}</div>`; speak(r.say); return; }
+        res.innerHTML = `<div class="vcard act"><div class="label">Bunu mu demek istedin?</div>${r.lines.map((l, i) => `<div${i ? "" : ' class="vmain"'}>${esc(l)}</div>`).join("")}
+          <div class="actions" style="justify-content:flex-start"><button type="button" class="btn" id="v-ok">Tamam, kaydet</button>${r.edit ? `<button type="button" class="btn ghost" id="v-edit">Düzenle</button>` : ""}<button type="button" class="btn line" id="v-no">Vazgeç</button></div></div>`;
+        speak(r.say);
+        res.querySelector("#v-ok").addEventListener("click", () => {
+          const msg = r.run(); save(); render();
+          res.innerHTML = `<div class="vcard done">✓ ${esc(msg)}</div>`; speak(msg);
+        });
+        const ed = res.querySelector("#v-edit"); ed && ed.addEventListener("click", () => r.edit());
+        res.querySelector("#v-no").addEventListener("click", () => { res.innerHTML = ""; try { speechSynthesis.cancel(); } catch {} });
+      };
+      const handle = text => { heard.hidden = false; heard.textContent = `“${text}”`; showResult(interpret(text)); };
+      sh.querySelector("#v-form").addEventListener("submit", ev => { ev.preventDefault(); const v = sh.querySelector("#v-input").value.trim(); if (v) { handle(v); sh.querySelector("#v-input").value = ""; } });
+      const listen = () => {
+        if (!SpeechRec) return;
+        try { rec && rec.abort(); } catch {}
+        try { speechSynthesis.cancel(); } catch {}
+        rec = new SpeechRec(); rec.lang = "tr-TR"; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 1;
+        let final = "";
+        rec.onstart = () => { mic.classList.add("on"); st.textContent = "Dinliyorum…"; res.innerHTML = ""; };
+        rec.onresult = ev => {
+          let interim = ""; final = "";
+          for (const r of ev.results) (r.isFinal ? (final += r[0].transcript) : (interim += r[0].transcript));
+          heard.hidden = false; heard.textContent = `“${(final || interim).trim()}”`;
+        };
+        rec.onerror = ev => {
+          mic.classList.remove("on");
+          st.textContent = {"not-allowed":"Mikrofon izni verilmedi. Ayarlar'dan Safari'ye mikrofon izni ver ya da yaz.", "service-not-allowed":"Mikrofon izni verilmedi. Ayarlar'dan Safari'ye mikrofon izni ver ya da yaz.", "no-speech":"Ses duyamadım. Tekrar dokunup konuş.", "network":"Ses tanıma için internet gerekiyor.", "audio-capture":"Mikrofon bulunamadı."}[ev.error] || "Dinleyemedim. Tekrar dene ya da yaz.";
+        };
+        rec.onend = () => { mic.classList.remove("on"); if (final.trim()) { st.textContent = "Mikrofona dokun ve konuş"; handle(final.trim()); } else if (st.textContent === "Dinliyorum…") st.textContent = "Ses duyamadım. Tekrar dokunup konuş."; };
+        try { rec.start(); } catch { st.textContent = "Dinleyemedim. Tekrar dene ya da yaz."; }
+      };
+      mic && mic.addEventListener("click", () => { if (mic.classList.contains("on")) { try { rec.stop(); } catch {} } else listen(); });
+      if (autoStart) listen();
+    }, true);
+}
+
 // ---------- toast ----------
 let toastT;
 function toast(msg){
@@ -2033,6 +2368,7 @@ window.addEventListener("storage", e => {
   if (slot.innerHTML) { closeSheet(); toast("Başka bir pencerede değişiklik yapıldı, güncel hali yüklendi"); }
   render();
 });
+document.getElementById("micfab").addEventListener("click", () => voiceSheet(true));
 document.getElementById("fab").addEventListener("click", () => {
   if (tab === "gorevler") taskSheet(null, "odev");
   else if (tab === "ogrenciler") stuMode === "program" ? programSheet(null) : stuMode === "hareket" ? moveSheet(null) : studentSheet(null);
