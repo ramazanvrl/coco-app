@@ -399,7 +399,7 @@ body{margin:0}
 <div id="sheetSlot"></div>
 <div id="toastSlot"></div>
 
-<script>window.COCO_DIRECT = {"iv":"iU0Ob/MWmQPY8GHp","ct":"tbR5ahkDmBP2n9o77+yMI5WtMXxpGI+igTelqFcA4foJUPwC7YIn4YAcGHrQwXU6NnR1Ok5x8ATleX6AM1oi0O9XZnNuCJvaiJ4NTxQp6swTYF9Am+gEP3e/hC9h1wltniX1zBo5hbxluOzhLWNH+BeYGVgv0e8F9ZVfel4WTO1OfusjmlPYw+SZJhQ/6p4gG9zYngaa88PXoQBejdi+sIf50O1t","t":"coco"};</script>
+<script>window.COCO_DIRECT = {"iv":"5W8bbXmzflBS41D4","ct":"hRsjc689UPRNJ4+EcD4DqL40iJhWZ+t4VmQHI+JEusOz4NAzQgzrFzzkv8QKaX2qVFjoIMtxzCUFWRDrDwcwwdCg0asU8QssTr/vMRUVIvnXivN473V8g5Nkkm0L6xfV7ez3iPOskF+ecI2c172dcbN9RNprYgGpcAk82czGUS6MjFDoHWpNbk9JBto0NRLefCb7j8RAacMcNRD8RSWKjQmTz3yS","t":"coco"};</script>
 <script>
 (() => {
 // ---------- types ----------
@@ -641,7 +641,8 @@ function occursOn(e, d){
   return e.repeat === "weekly" && e.date < d && parse(e.date).getDay() === parse(d).getDay();
 }
 const eventsOn = d => state.events.filter(e => occursOn(e,d)).sort((a,b) => toMin(a.start) - toMin(b.start));
-const tasksOn = d => state.tasks.filter(t => t.due === d);
+const tasksOn = d => state.tasks.filter(t => t.due === d).sort((a, b) => (a.time || "~") < (b.time || "~") ? -1 : 1);
+const dueKey = t => t.due + (t.time || "~");
 function usedOf(s){
   let n = s.prior || 0;
   for (const e of state.events) for (const [d,ids] of Object.entries(e.att||{})) if (d >= s.start && ids.includes(s.id)) n++;
@@ -1003,7 +1004,7 @@ const checkSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 function taskRow(t){
   return `<div class="task${t.done ? " done" : ""}">
     <button class="check${t.done ? " on" : ""}" data-toggle-task="${t.id}" aria-label="${t.done ? "Tamamlanmadı olarak işaretle" : "Tamamlandı olarak işaretle"}">${t.done ? checkSvg : ""}</button>
-    <div class="body"><div class="title">${esc(t.title)}</div><div class="small muted">${esc(TASKKINDS[t.kind])}${t.course ? " · " + esc(t.course) : ""} · ${fmtShort(t.due)}</div></div>
+    <div class="body"><div class="title">${esc(t.title)}</div><div class="small muted">${esc(TASKKINDS[t.kind])}${t.course ? " · " + esc(t.course) : ""} · ${fmtShort(t.due)}${t.time ? " · " + esc(t.time) : ""}</div></div>
     ${dueChip(t)}
     <button class="iconbtn" data-open-task="${t.id}" aria-label="Düzenle">${editSvg}</button>
   </div>`;
@@ -1037,7 +1038,7 @@ function renderToday(){
   for (let i = 0; i < 7; i++) for (const e of eventsOn(addDays(ws,i))) {
     if (e.type === "ders") derse++; else if (PILATES(e.type)) pil++; else if (e.type === "danisan") dan++;
   }
-  const upcoming = state.tasks.filter(t => !t.done && daysBetween(d, t.due) <= 10).sort((a,b) => a.due < b.due ? -1 : 1);
+  const upcoming = state.tasks.filter(t => !t.done && daysBetween(d, t.due) <= 10).sort((a,b) => dueKey(a) < dueKey(b) ? -1 : 1);
   const lowPkg = state.students.filter(s => leftOf(s) <= 1);
   const inSess = new Set();
   for (let i = 0; i < 7; i++) for (const e of eventsOn(addDays(ws,i))) if (PILATES(e.type)) e.students.forEach(x => inSess.add(x));
@@ -1145,9 +1146,9 @@ function renderCal(){
 }
 
 function renderTasks(){
-  const open = state.tasks.filter(t => !t.done).sort((a,b) => a.due < b.due ? -1 : 1);
+  const open = state.tasks.filter(t => !t.done).sort((a,b) => dueKey(a) < dueKey(b) ? -1 : 1);
   const exams = open.filter(t => t.kind === "sinav"), work = open.filter(t => t.kind !== "sinav");
-  const done = state.tasks.filter(t => t.done).sort((a,b) => a.due < b.due ? 1 : -1);
+  const done = state.tasks.filter(t => t.done).sort((a,b) => dueKey(a) < dueKey(b) ? 1 : -1);
   const courses = state.events.filter(e => e.type === "ders" && e.repeat === "weekly").sort((a,b) => (parse(a.date).getDay()+6)%7 - (parse(b.date).getDay()+6)%7 || toMin(a.start)-toMin(b.start));
   view.innerHTML = `
     <div class="section" style="margin-top:8px"><div class="section-head"><h2>Sınavlar</h2><button class="btn sm ghost" data-new-task="sinav">Sınav ekle</button></div>
@@ -1489,9 +1490,10 @@ function taskSheet(id, kind, preset){
       <label class="field"><span>Başlık</span><input class="input" id="t-title" required value="${esc(v.title)}" placeholder="ör. Besin Kimyası final"></label>
       <div class="field"><span>Tür</span><div class="chips" id="t-kind">${Object.entries(TASKKINDS).map(([k,n]) => `<button type="button" class="chip" style="${tvar(k==="sinav"?"sinav":"ders")}" data-kind="${k}" aria-pressed="${v.kind===k}"><i></i>${n}</button>`).join("")}</div></div>
       <div class="row2">
-        <label class="field"><span>Ders</span><input class="input" id="t-course" list="courseList" value="${esc(v.course)}" placeholder="Hangi ders?"><datalist id="courseList">${courses.map(c => `<option value="${esc(c)}">`).join("")}</datalist></label>
         <label class="field"><span>Tarih</span><input class="input" type="date" id="t-due" required value="${esc(v.due)}"></label>
+        <label class="field"><span>Saat <small class="muted">(isteğe bağlı)</small></span><input class="input" type="time" id="t-time" value="${esc(v.time || "")}"></label>
       </div>
+      <label class="field"><span>Ders</span><input class="input" id="t-course" list="courseList" value="${esc(v.course)}" placeholder="Hangi ders?"><datalist id="courseList">${courses.map(c => `<option value="${esc(c)}">`).join("")}</datalist></label>
       <div id="t-confirm"></div>
       <div class="actions">${t ? `<button type="button" class="btn danger sm" id="t-del">Sil</button>` : ""}<span class="sp"></span><button type="button" class="btn line" data-close>Vazgeç</button><button class="btn" type="submit">Kaydet</button></div>
     </form>`, sh => {
@@ -1499,7 +1501,7 @@ function taskSheet(id, kind, preset){
       sh.querySelector("#t-kind").addEventListener("click", ev => { const b = ev.target.closest("[data-kind]"); if (!b) return; k = b.dataset.kind; sh.querySelectorAll("#t-kind .chip").forEach(c => c.setAttribute("aria-pressed", c === b)); });
       sh.querySelector("#tForm").addEventListener("submit", ev => {
         ev.preventDefault();
-        const data = {title:sh.querySelector("#t-title").value.trim(), kind:k, course:sh.querySelector("#t-course").value.trim(), due:sh.querySelector("#t-due").value};
+        const data = {title:sh.querySelector("#t-title").value.trim(), kind:k, course:sh.querySelector("#t-course").value.trim(), due:sh.querySelector("#t-due").value, time:sh.querySelector("#t-time").value};
         if (t) { Object.assign(t, data); delete t.demo; } else state.tasks.push({id:uid(), done:false, ...data});
         save(); closeSheet(); render(); toast(t ? "Güncellendi" : "Eklendi");
       });
@@ -2083,8 +2085,8 @@ function dayReport(d){
   const when = d === today() ? "Bugün" : d === addDays(today(), 1) ? "Yarın" : capTr(fmtLong(d));
   if (!evs.length && !tks.length && !sps.length) return {lines:[`${when} için kayıt yok.`], say:`${when} için kayıt yok.`};
   const lines = [...evs.map(e => `${e.start}  ${e.title}${e.students.length ? " · " + e.students.map(id => state.students.find(s => s.id === id)?.name.split(" ")[0]).filter(Boolean).join(", ") : ""}`),
-    ...tks.map(x => `Teslim: ${x.title}`), ...sps.map(x => x.t)];
-  const say = `${when} ${evs.length ? `${evs.length} planın var. ` + evs.map(e => `Saat ${sayTime(e.start)}'da ${e.title}`).join(". ") : ""}${tks.length ? `. Teslim: ${tks.map(x => x.title).join(", ")}` : ""}${sps.length ? `. ${sps.map(x => x.t).join(", ")}` : ""}.`;
+    ...tks.map(x => `${x.time ? x.time + "  " : ""}${x.kind === "sinav" ? "Sınav" : "Teslim"}: ${x.title}`), ...sps.map(x => x.t)];
+  const say = `${when} ${evs.length ? `${evs.length} planın var. ` + evs.map(e => `Saat ${sayTime(e.start)}'da ${e.title}`).join(". ") : ""}${tks.length ? `. ${tks.map(x => `${x.kind === "sinav" ? "Sınav" : "Teslim"}: ${x.title}${x.time ? `, saat ${sayTime(x.time)}` : ""}`).join(". ")}` : ""}${sps.length ? `. ${sps.map(x => x.t).join(", ")}` : ""}.`;
   return {lines, say};
 }
 
@@ -2163,19 +2165,19 @@ function interpret(raw){
 
   const taskKind = U(/\b(sınav|vize|final|bütünleme|quiz)/).test(t) ? "sinav" : U(/\bsunum/).test(t) ? "sunum" : U(/\b(ödev|teslim|rapor)/).test(t) ? "odev" : "";
   if (taskKind && U(/\b(ne zaman|var mı|neler)\b/).test(t)) {
-    const open = state.tasks.filter(x => !x.done && x.due >= today()).sort((a, b) => a.due < b.due ? -1 : 1);
+    const open = state.tasks.filter(x => !x.done && x.due >= today()).sort((a, b) => dueKey(a) < dueKey(b) ? -1 : 1);
     const word = leftover(t, [U(/\b(ne zaman|var mı|neler|sınav\S*|vize\S*|final\S*|ödev\S*|sunum\S*|teslim\S*)\b/g)]);
     const hit = word ? open.filter(x => low(x.title + " " + x.course).includes(word.split(" ")[0])) : open.filter(x => taskKind === "sinav" ? x.kind === "sinav" : x.kind !== "sinav");
     if (!hit.length) return answer(word ? `“${word}” ile ilgili yaklaşan kayıt bulamadım.` : "Yaklaşan kayıt yok.");
-    return answer(hit.slice(0, 5).map(x => `${x.title}: ${fmtLong(x.due)} (${daysBetween(today(), x.due)} gün)`));
+    return answer(hit.slice(0, 5).map(x => `${x.title}: ${fmtLong(x.due)}${x.time ? " saat " + x.time : ""} (${daysBetween(today(), x.due)} gün)`));
   }
   if (taskKind) {
     const title = capTr(leftover(t, [U(/\b(ekle\S*|var)\b/g)])) || TASKKINDS[taskKind];
     const course = capTr(leftover(t, [U(/\b(sınav|vize|final|bütünleme|quiz|ödev|teslim|rapor|sunum)\S*/g)]).split(" ").slice(0, 3).join(" "));
-    const due = date || addDays(today(), 7);
-    const lines = [`${TASKKINDS[taskKind]}: ${title}`, `${capTr(fmtLong(due))}${date ? "" : " (tarih söylemedin, 1 hafta sonrasına koydum)"}`];
-    const data = {title, kind: taskKind, course, due};
-    return action(lines, `${title}, ${fmtLong(due)} olarak ekleyeyim mi?`, () => { state.tasks.push({id:uid(), done:false, ...data}); return "Ödev ve sınavlara eklendi."; }, () => taskSheet(null, taskKind, data));
+    const due = date || addDays(today(), 7), time = parseTime(t)?.start || "";
+    const lines = [`${TASKKINDS[taskKind]}: ${title}`, `${capTr(fmtLong(due))}${time ? " · " + time : ""}${date ? "" : " (tarih söylemedin, 1 hafta sonrasına koydum)"}`];
+    const data = {title, kind: taskKind, course, due, time};
+    return action(lines, `${title}, ${fmtLong(due)}${time ? ` saat ${sayTime(time)}` : ""} olarak ekleyeyim mi?`, () => { state.tasks.push({id:uid(), done:false, ...data}); return "Ödev ve sınavlara eklendi."; }, () => taskSheet(null, taskKind, data));
   }
 
   const tm = parseTime(t);
