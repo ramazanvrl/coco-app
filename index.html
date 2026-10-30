@@ -399,7 +399,7 @@ body{margin:0}
 <div id="sheetSlot"></div>
 <div id="toastSlot"></div>
 
-<script>window.COCO_DIRECT = {"iv":"5W8bbXmzflBS41D4","ct":"hRsjc689UPRNJ4+EcD4DqL40iJhWZ+t4VmQHI+JEusOz4NAzQgzrFzzkv8QKaX2qVFjoIMtxzCUFWRDrDwcwwdCg0asU8QssTr/vMRUVIvnXivN473V8g5Nkkm0L6xfV7ez3iPOskF+ecI2c172dcbN9RNprYgGpcAk82czGUS6MjFDoHWpNbk9JBto0NRLefCb7j8RAacMcNRD8RSWKjQmTz3yS","t":"coco"};</script>
+<script>window.COCO_DIRECT = {"iv":"iPaVcXymP/U0dKer","ct":"LGT/7Ftymo9pBzOclseBT5pG6E5+26BJRzJ/EabTjjjeplSePTCi+mMPsNXvJbCY7vpbROx21nyse2Hv5KdBsKSLH6wkHp7GWX9paleIrp+Ov3pTJfhMPQSZSDKoolrXGsbDFa9h0PXDUWSZJ4TfEFSB80JFOhDIk8KNk0SSw29BbPyc5Ufc7WSA9/8ZIfcLwOfmrC6GDvToiBhYKvd5vNzQI+CR","t":"coco"};</script>
 <script>
 (() => {
 // ---------- types ----------
@@ -1004,7 +1004,7 @@ const checkSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 function taskRow(t){
   return `<div class="task${t.done ? " done" : ""}">
     <button class="check${t.done ? " on" : ""}" data-toggle-task="${t.id}" aria-label="${t.done ? "Tamamlanmadı olarak işaretle" : "Tamamlandı olarak işaretle"}">${t.done ? checkSvg : ""}</button>
-    <div class="body"><div class="title">${esc(t.title)}</div><div class="small muted">${esc(TASKKINDS[t.kind])}${t.course ? " · " + esc(t.course) : ""} · ${fmtShort(t.due)}${t.time ? " · " + esc(t.time) : ""}</div></div>
+    <div class="body"><div class="title">${esc(t.title)}</div><div class="small muted">${esc(TASKKINDS[t.kind])}${t.course ? " · " + esc(t.course) : ""} · ${fmtShort(t.due)}${t.time ? " · " + esc(t.time) : ""}</div>${t.note ? `<div class="small muted">${esc(t.note)}</div>` : ""}</div>
     ${dueChip(t)}
     <button class="iconbtn" data-open-task="${t.id}" aria-label="Düzenle">${editSvg}</button>
   </div>`;
@@ -1483,17 +1483,19 @@ function eventSheet(id, day, presetType, preset){
 function taskSheet(id, kind, preset){
   const t = id ? state.tasks.find(x => x.id === id) : null;
   const v = t ? {...t} : {title:"", kind: kind || "odev", course:"", due: addDays(today(),7), ...(preset || {})};
+  // the course used to be its own field; fold it into the title so nothing written before disappears
+  if (v.course && !low(v.title).includes(low(v.course))) v.title = `${v.course} ${v.title}`.trim();
   const courses = [...new Set(state.events.filter(e => e.type === "ders").map(e => e.title))];
   openSheet(`
     <div class="head"><h2>${t ? "Görevi düzenle" : "Yeni ödev / sınav"}</h2>${closeBtn}</div>
     <form id="tForm" class="field" style="gap:14px">
-      <label class="field"><span>Başlık</span><input class="input" id="t-title" required value="${esc(v.title)}" placeholder="ör. Besin Kimyası final"></label>
+      <label class="field"><span>Başlık</span><input class="input" id="t-title" required list="courseList" value="${esc(v.title)}" placeholder="ör. Besin Kimyası final"><datalist id="courseList">${courses.map(c => `<option value="${esc(c)}">`).join("")}</datalist></label>
       <div class="field"><span>Tür</span><div class="chips" id="t-kind">${Object.entries(TASKKINDS).map(([k,n]) => `<button type="button" class="chip" style="${tvar(k==="sinav"?"sinav":"ders")}" data-kind="${k}" aria-pressed="${v.kind===k}"><i></i>${n}</button>`).join("")}</div></div>
       <div class="row2">
         <label class="field"><span>Tarih</span><input class="input" type="date" id="t-due" required value="${esc(v.due)}"></label>
         <label class="field"><span>Saat <small class="muted">(isteğe bağlı)</small></span><input class="input" type="time" id="t-time" value="${esc(v.time || "")}"></label>
       </div>
-      <label class="field"><span>Ders</span><input class="input" id="t-course" list="courseList" value="${esc(v.course)}" placeholder="Hangi ders?"><datalist id="courseList">${courses.map(c => `<option value="${esc(c)}">`).join("")}</datalist></label>
+      <label class="field"><span>Açıklama <small class="muted">(isteğe bağlı)</small></span><input class="input" id="t-note" value="${esc(v.note || "")}" placeholder="ör. B Blok 204, kimliği unutma"></label>
       <div id="t-confirm"></div>
       <div class="actions">${t ? `<button type="button" class="btn danger sm" id="t-del">Sil</button>` : ""}<span class="sp"></span><button type="button" class="btn line" data-close>Vazgeç</button><button class="btn" type="submit">Kaydet</button></div>
     </form>`, sh => {
@@ -1501,7 +1503,7 @@ function taskSheet(id, kind, preset){
       sh.querySelector("#t-kind").addEventListener("click", ev => { const b = ev.target.closest("[data-kind]"); if (!b) return; k = b.dataset.kind; sh.querySelectorAll("#t-kind .chip").forEach(c => c.setAttribute("aria-pressed", c === b)); });
       sh.querySelector("#tForm").addEventListener("submit", ev => {
         ev.preventDefault();
-        const data = {title:sh.querySelector("#t-title").value.trim(), kind:k, course:sh.querySelector("#t-course").value.trim(), due:sh.querySelector("#t-due").value, time:sh.querySelector("#t-time").value};
+        const data = {title:sh.querySelector("#t-title").value.trim(), kind:k, course:"", note:sh.querySelector("#t-note").value.trim(), due:sh.querySelector("#t-due").value, time:sh.querySelector("#t-time").value};
         if (t) { Object.assign(t, data); delete t.demo; } else state.tasks.push({id:uid(), done:false, ...data});
         save(); closeSheet(); render(); toast(t ? "Güncellendi" : "Eklendi");
       });
@@ -2167,16 +2169,15 @@ function interpret(raw){
   if (taskKind && U(/\b(ne zaman|var mı|neler)\b/).test(t)) {
     const open = state.tasks.filter(x => !x.done && x.due >= today()).sort((a, b) => dueKey(a) < dueKey(b) ? -1 : 1);
     const word = leftover(t, [U(/\b(ne zaman|var mı|neler|sınav\S*|vize\S*|final\S*|ödev\S*|sunum\S*|teslim\S*)\b/g)]);
-    const hit = word ? open.filter(x => low(x.title + " " + x.course).includes(word.split(" ")[0])) : open.filter(x => taskKind === "sinav" ? x.kind === "sinav" : x.kind !== "sinav");
+    const hit = word ? open.filter(x => low(x.title + " " + (x.course || "") + " " + (x.note || "")).includes(word.split(" ")[0])) : open.filter(x => taskKind === "sinav" ? x.kind === "sinav" : x.kind !== "sinav");
     if (!hit.length) return answer(word ? `“${word}” ile ilgili yaklaşan kayıt bulamadım.` : "Yaklaşan kayıt yok.");
     return answer(hit.slice(0, 5).map(x => `${x.title}: ${fmtLong(x.due)}${x.time ? " saat " + x.time : ""} (${daysBetween(today(), x.due)} gün)`));
   }
   if (taskKind) {
     const title = capTr(leftover(t, [U(/\b(ekle\S*|var)\b/g)])) || TASKKINDS[taskKind];
-    const course = capTr(leftover(t, [U(/\b(sınav|vize|final|bütünleme|quiz|ödev|teslim|rapor|sunum)\S*/g)]).split(" ").slice(0, 3).join(" "));
     const due = date || addDays(today(), 7), time = parseTime(t)?.start || "";
     const lines = [`${TASKKINDS[taskKind]}: ${title}`, `${capTr(fmtLong(due))}${time ? " · " + time : ""}${date ? "" : " (tarih söylemedin, 1 hafta sonrasına koydum)"}`];
-    const data = {title, kind: taskKind, course, due, time};
+    const data = {title, kind: taskKind, course: "", note: "", due, time};
     return action(lines, `${title}, ${fmtLong(due)}${time ? ` saat ${sayTime(time)}` : ""} olarak ekleyeyim mi?`, () => { state.tasks.push({id:uid(), done:false, ...data}); return "Ödev ve sınavlara eklendi."; }, () => taskSheet(null, taskKind, data));
   }
 
