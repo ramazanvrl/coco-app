@@ -209,6 +209,7 @@ h2{font-size:18px}
 .week .colhead{position:sticky;top:0;padding:8px 4px;text-align:center;font-size:12px;border-bottom:1px solid var(--line);background:var(--surface);z-index:2}
 .week .colhead b{display:block;font-size:17px;font-family:var(--f-display);font-variant-numeric:tabular-nums}
 .week .colhead.today b{color:var(--lilac-deep)}
+.week .colhead .tk{display:block;width:100%;margin-top:3px;padding:2px 4px;border:0;border-radius:6px;font:inherit;font-size:10.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:color-mix(in srgb,var(--t) 16%,var(--surface));color:var(--t);cursor:pointer}
 .week .colhead.regl{box-shadow:0 -3px 0 var(--t-regl) inset}
 .week .colhead .hl{display:block;font-size:10.5px;color:var(--t-manita);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hours{position:relative}
@@ -399,7 +400,7 @@ body{margin:0}
 <div id="sheetSlot"></div>
 <div id="toastSlot"></div>
 
-<script>window.COCO_DIRECT = {"iv":"iPaVcXymP/U0dKer","ct":"LGT/7Ftymo9pBzOclseBT5pG6E5+26BJRzJ/EabTjjjeplSePTCi+mMPsNXvJbCY7vpbROx21nyse2Hv5KdBsKSLH6wkHp7GWX9paleIrp+Ov3pTJfhMPQSZSDKoolrXGsbDFa9h0PXDUWSZJ4TfEFSB80JFOhDIk8KNk0SSw29BbPyc5Ufc7WSA9/8ZIfcLwOfmrC6GDvToiBhYKvd5vNzQI+CR","t":"coco"};</script>
+<script>window.COCO_DIRECT = {"iv":"smZvLLaS2vv0anla","ct":"S060+Xfd6MFjOFI6bxLQXZNGxtpUbJHSlzbnhX1lafIUFy9NEnDYrL7XC0FI378dlJe5w6IV5zsJLi+3BPnbO+mOsQb3RaWaDGNtBDLMM2RYI6b5Gv2dHl+7B55bY/YCxQIgqoUqyH/F3yGIDaYLcNSSJQWHpWYEZbU/K/SB+lasjbcIkqc1PkwqV4Ax4kwsQRuUX6hjEd4VBGh90jMu2+q0grm/","t":"coco"};</script>
 <script>
 (() => {
 // ---------- types ----------
@@ -1123,8 +1124,8 @@ function renderCal(){
     const days = Array.from({length:7}, (_,i) => addDays(weekStart, i));
     const title = `${fmtShort(days[0])} – ${fmtShort(days[6])}`;
     let html = `<div></div>` + days.map((d,i) => {
-      const p = periodOn(d), sp = specialsOn(d);
-      return `<div class="colhead${d===today()?" today":""}${p && p.kind === "actual" ? " regl" : ""}">${WD[i]}<b>${parse(d).getDate()}</b>${sp.length ? `<span class="hl" title="${esc(sp.map(x => x.t).join(", "))}">♥ ${esc(sp[0].t)}</span>` : ""}</div>`;
+      const p = periodOn(d), sp = specialsOn(d), untimed = tasksOn(d).filter(t => !t.done && !t.time);
+      return `<div class="colhead${d===today()?" today":""}${p && p.kind === "actual" ? " regl" : ""}">${WD[i]}<b>${parse(d).getDate()}</b>${sp.length ? `<span class="hl" title="${esc(sp.map(x => x.t).join(", "))}">♥ ${esc(sp[0].t)}</span>` : ""}${untimed.map(t => `<button class="tk" style="${tvar(t.kind === "sinav" ? "sinav" : "kisisel")}" data-open-task="${t.id}">${esc(t.title)}</button>`).join("")}</div>`;
     }).join("");
     html += `<div class="hours">${Array.from({length:endH-startH}, (_,i) => `<div>${pad(startH+i)}:00</div>`).join("")}</div>`;
     for (const d of days) {
@@ -1132,6 +1133,9 @@ function renderCal(){
         const top = Math.max(0, (toMin(e.start) - startH*60) / 60);
         const hgt = Math.max(0.5, (toMin(e.end) - toMin(e.start)) / 60);
         return `<button class="blk" style="${tvar(e.type)};top:calc(${top} * var(--hour));height:calc(${hgt} * var(--hour) - 2px)" data-open-ev="${e.id}" data-day="${d}"><b>${esc(e.title)}</b><span>${esc(e.start)}–${esc(e.end)}</span></button>`;
+      }).join("") + tasksOn(d).filter(t => !t.done && t.time).map(t => {
+        const top = Math.max(0, (toMin(t.time) - startH*60) / 60);
+        return `<button class="blk" style="${tvar(t.kind === "sinav" ? "sinav" : "kisisel")};top:calc(${top} * var(--hour));height:calc(1 * var(--hour) - 2px)" data-open-task="${t.id}"><b>${esc(t.title)}</b><span>${esc(t.time)}${t.note ? " · " + esc(t.note) : ""}</span></button>`;
       }).join("");
       html += `<div class="wcol${d===today()?" today":""}" style="height:calc(${endH-startH} * var(--hour))">${blocks}</div>`;
     }
