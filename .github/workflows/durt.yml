@@ -1,0 +1,25 @@
+# COCO "Dürt": started by the GitHub Pages copy when it cannot reach Vercel; sends what is queued (bildirim/durt.mjs).
+# Published into the coco-app repo as .github/workflows/durt.yml by pages-build.mjs.
+name: COCO dürt
+on:
+  workflow_dispatch:
+concurrency:
+  group: durt
+  cancel-in-progress: false
+jobs:
+  gonder:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: bildirim
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund --prefix bildirim
+      - run: node bildirim/durt.mjs
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          VAPID_PUBLIC: ${{ secrets.VAPID_PUBLIC }}
+          VAPID_PRIVATE: ${{ secrets.VAPID_PRIVATE }}

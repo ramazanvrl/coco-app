@@ -380,6 +380,7 @@ textarea.input{resize:vertical;min-height:64px}
 @media (max-width:380px){.evgrid{grid-template-columns:1fr}}
 .evcard{background:color-mix(in srgb,var(--t-manita) 8%,var(--surface));border:1px solid color-mix(in srgb,var(--t-manita) 24%,var(--surface));border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
 .evcard .label{color:var(--t-manita)}
+.nudges .chip{font-size:14px;padding:8px 12px}
 .evscore{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1;font-variant-numeric:tabular-nums}
 .evscore small{font-size:14px;color:var(--muted);margin-left:2px}
 .evscore.hi,.evrow b.hi{color:var(--ok)} .evscore.mid,.evrow b.mid{color:var(--t-manita)} .evscore.lo,.evrow b.lo{color:var(--danger)}
@@ -433,7 +434,7 @@ body{margin:0}
 <div id="sheetSlot"></div>
 <div id="toastSlot"></div>
 
-<script>window.COCO_DIRECT = {"iv":"2c6TOCIyUqC13VW2","ct":"wuAlYu2/4FWwKZLLc4qEyndl3SAbGNLbA2xXVQVadrSo7UtC+6XroJd8Ws0LVbAs8YVZQrG+oCImqxYaBH7x2zrvRgdJcWeF6zX1xJpYjlzFZMgz8IDTkJip8TNYGdQWLtQza5WqaVGx0F7fknkESqK+92YqDCtYI8JU6sHONiUQO1luxeJkGTCfTdbd8q79zYC6sqSJqa0K43X8gUuU9cXGo1ZS","t":"coco"};</script>
+<script>window.COCO_DIRECT = {"iv":"MBgFSyulSotFbn0d","ct":"iZ5jBUw8gv5+WaBO2dnGiwVJ57gbKrlMeE6//3/RlKBKRSlypxKZvW69rfPOxsWtu9/5YsJXcrosbc7ML71s+X6gNMxBZvoAnLVfi3d0mAO4d2Yvso9pzYzvwetz01J+Mssb1qryBleGNVye9LpPSZFbbqvs8WiFdPLPXIDk2QB2luBK+BGxcTJSE4ZTwSDOb5d2De2V4fjiKanfxm374MVJ3WBW","t":"coco","gh":{"iv":"QWPF9Lx7kSagF3zJ","ct":"bz7KYu+UrijKYKl5ydBixHj7Q5ZGRQmBm4vYQdeo1kLdVrhvM9JoMirY80hr5wQiLQmfhu5f/2JCl3qbNdkvoTf5smDsUF6iBA/VhZs/KLuno0xS7kRlLbeyD/sSAfA0T+xOXVMOttBLairuMw=="}};</script>
 <script>
 (() => {
 // ---------- types ----------
@@ -1096,6 +1097,42 @@ const sync = (() => {
     ] : [{query:`DELETE FROM ${P} WHERE endpoint = $1`, params:[body.endpoint]}]);
     return true;
   }
+  // "Dürt": straight to Vercel, which pushes it to the other phone at once. The Pages copy falls back to
+  // queueing it in the database and starting the GitHub "dürt" workflow (about a minute).
+  const VERCEL = "https://coco-gules-gamma.vercel.app";
+  async function nudge(msg){
+    if (!key) return {error:"nokey"};
+    const call = async base => {
+      const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 6000);
+      try {
+        const r = await fetch(base + "/api/nudge", {method:"POST", cache:"no-store", signal:ctl.signal, headers:{"content-type":"application/json", "x-coco-key":key}, body:J(msg)});
+        if (r.status === 429) return {error:"soon"};
+        return r.ok ? await r.json() : null;
+      } catch { return null; } finally { clearTimeout(t); }
+    };
+    if (!window.COCO_DIRECT) return (await call("")) || {error:"net"};
+    const direct = await call(VERCEL);
+    if (direct) return direct;
+    const d = window.COCO_DIRECT, conn = await directConn();
+    if (!conn || !d.gh) return {error:"net"};
+    const T = d.t || "coco";
+    try {
+      const [subs, recent] = await neonSql(conn, [
+        {query:`CREATE TABLE IF NOT EXISTS ${T}_nudge (id bigserial PRIMARY KEY, sender text NOT NULL, recipient text NOT NULL, kind text NOT NULL, title text NOT NULL, body text NOT NULL, sent boolean NOT NULL DEFAULT false, created_at timestamptz NOT NULL DEFAULT now())`, params:[]},
+        {query:`SELECT count(*)::int AS n FROM ${T}_push WHERE who = $1`, params:[msg.to]},
+        {query:`SELECT count(*)::int AS n FROM ${T}_nudge WHERE sender = $1 AND kind = $2 AND created_at > now() - interval '45 seconds'`, params:[msg.from, msg.kind]},
+      ]).then(r => r.slice(1).map(x => +x.rows[0].n));
+      if (!subs) return {sent:0, reason:"no-subscription"};
+      if (recent) return {error:"soon"};
+      await neonSql(conn, [{query:`INSERT INTO ${T}_nudge (sender, recipient, kind, title, body) VALUES ($1, $2, $3, $4, $5)`, params:[msg.from, msg.to, msg.kind, msg.title, msg.body]}]);
+      const raw = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(key));
+      const k = await crypto.subtle.importKey("raw", raw, "AES-GCM", false, ["decrypt"]);
+      const token = new TextDecoder().decode(await crypto.subtle.decrypt({name:"AES-GCM", iv:b64(d.gh.iv)}, k, b64(d.gh.ct)));
+      const r = await fetch("https://api.github.com/repos/ramazanvrl/coco-app/actions/workflows/durt.yml/dispatches", {method:"POST",
+        headers:{"Accept":"application/vnd.github+json", "Authorization":"Bearer " + token, "X-GitHub-Api-Version":"2022-11-28"}, body:J({ref:"main"})});
+      return r.ok ? {queued:true} : {error:"net"};
+    } catch { return {error:"net"}; }
+  }
   const show = s => { status = s; setPill(pillMode()); };
   function adopt(st){
     state = normalize(st); persisted = true; lsSet();
@@ -1167,7 +1204,7 @@ const sync = (() => {
     location.replace(location.pathname + location.search + "#k=" + mm[1]); location.reload();
     return true;
   }
-  return { run: () => check(true), changed, unlink, pairFrom, push, get status(){ return status; }, get key(){ return key; } };
+  return { run: () => check(true), changed, unlink, pairFrom, push, nudge, get status(){ return status; }, get key(){ return key; } };
 })();
 const progOf = id => state.programs.find(p => p.id === id);
 const progOptions = sel => `<option value="">Program yok</option>` + state.programs.map(p => `<option value="${p.id}" ${p.id === sel ? "selected" : ""}>${esc(p.name)} · ${esc(p.equip)}</option>`).join("");
@@ -1764,6 +1801,44 @@ const PEOPLE = {
   ekin:    {ad:"Ekin",    acc:"Ekin'i",    dat:"Ekin'e",    gen:"Ekin'in"},
 };
 const otherOf = who => who === "ramazan" ? "ekin" : "ramazan";
+// [kind, emoji, button label, what the other phone shows]
+const NUDGES = [
+  ["ilgi", "💜", "İlgi", "İlgi istiyor 🥺"],
+  ["ozledim", "🥺", "Seni özledim", "Seni özledi"],
+  ["saril", "🤗", "Sarılmak istiyorum", "Sana sarılmak istiyor 🤗"],
+  ["seviyorum", "❤️", "Seni seviyorum", "Seni seviyorum ❤️"],
+  ["ara", "📞", "Beni ara", "Aranmak istiyor 📞"],
+  ["mesaj", "💬", "Mesajıma bak", "Mesajına bakmanı istiyor 💬"],
+  ["eve", "🏠", "Eve geldim", "Eve geldi 🏠"],
+  ["yola", "🚗", "Yola çıktım", "Yola çıktı 🚗"],
+];
+function nudgeSection(){
+  const me = meWho();
+  if (!me) return "";
+  const to = PEOPLE[otherOf(me)];
+  return `<div class="section"><div class="section-head"><h2>${esc(to.dat)} dürt</h2></div>
+    <div class="small muted">Dokununca ${esc(to.gen)} telefonuna hemen bildirim gider.</div>
+    <div class="chips nudges">${NUDGES.map(([k, e, l]) => `<button class="chip" style="${tvar("manita")}" data-nudge="${k}">${e} ${esc(l)}</button>`).join("")}</div>
+    <form id="nudgeForm" class="inline"><input class="input" id="nudge-text" maxlength="120" placeholder="Kendi mesajını yaz" aria-label="Kendi mesajın" required><button class="btn">Gönder</button></form></div>`;
+}
+const NUDGE_WAIT = "coco.nudgeAt";
+async function sendNudge(kind, custom, btn){
+  const me = meWho(); if (!me) return;
+  const def = NUDGES.find(n => n[0] === kind), last = (() => { try { return JSON.parse(lsRead(NUDGE_WAIT) || "{}"); } catch { return {}; } })();
+  if (Date.now() - (last[kind] || 0) < 45000) { toast("Az önce gönderdin, biraz bekle"); return; }
+  const msg = {from:me, to:otherOf(me), kind, title:`${PEOPLE[me].ad} ${def ? def[1] : "💌"}`, body: custom || def[3]};
+  btn && (btn.disabled = true);
+  const r = await sync.nudge(msg);
+  btn && (btn.disabled = false);
+  if (r.sent > 0 || r.queued) { last[kind] = Date.now(); lsWrite(NUDGE_WAIT, J(last)); }
+  toast(r.sent > 0 ? `${PEOPLE[otherOf(me)].dat} gönderildi`
+    : r.queued ? "Gönderiliyor, yaklaşık 1 dakikada ulaşır"
+    : r.reason === "no-subscription" ? `${PEOPLE[otherOf(me)].gen} telefonunda COCO bildirimleri açık değil`
+    : r.error === "soon" ? "Az önce gönderdin, biraz bekle"
+    : r.error === "nokey" ? "Bu cihaz ortak kayda bağlı değil"
+    : "Gönderilemedi, internet bağlantını kontrol et");
+  return r.sent > 0 || r.queued;
+}
 const ME_KEY = "coco.me";
 let meMemo = null, evalDay = today();
 const meWho = () => { if (meMemo === null) meMemo = lsRead(ME_KEY); return PEOPLE[meMemo] ? meMemo : ""; };
@@ -1868,6 +1943,7 @@ function renderManita(){
       ${m.birth ? `<div class="small muted">Doğum günü ${fmtDate(m.birth)} · ${ageOn(m.birth, today())} yaşında</div>` : ""}
       <div class="actions"><button class="btn sm warm" data-edit-manita>${nm ? "Bilgileri düzenle" : "Bilgilerini gir"}</button>${m.phone ? `<a class="btn sm line" href="tel:${esc(m.phone.replace(/[^\d+]/g, ""))}">Ara</a>` : ""}</div>
     </div>
+    ${nudgeSection()}
     ${evalSection()}
     <div class="section"><div class="section-head"><h2>Özel günler</h2><button class="btn sm ghost" data-new-mday>Özel gün ekle</button></div>
       <div class="list">${up.length ? up.map(x => specialRow({...x, k:"manita"}, x.date)).join("") : `<div class="empty">Doğum gününü ve birliktelik tarihini girince burada geri sayım başlar. İlk buluşma, ilk tatil gibi günleri de ekleyebilirsin.</div>`}</div></div>
@@ -2920,6 +2996,7 @@ document.addEventListener("click", ev => {
   if (el.hasAttribute("data-edit-manita")) { manitaSheet(); return; }
   if (el.hasAttribute("data-new-mday")) { mdaySheet(null); return; }
   if (d.mday) { mdaySheet(d.mday); return; }
+  if (d.nudge) { sendNudge(d.nudge, "", el); return; }
   if (d.mwho) { mWho = d.mwho; try { localStorage.setItem("coco.mwho", mWho); } catch {} render(); return; }
   if (d.giftToggle) { const g = prof().gifts.find(x => x.id === d.giftToggle); g.done = !g.done; save(); render(); return; }
   if (d.giftDel) { const m = prof(); m.gifts = m.gifts.filter(x => x.id !== d.giftDel); save(); render(); toast("Silindi"); return; }
@@ -2948,6 +3025,12 @@ document.addEventListener("submit", ev => {
   if (f.id === "pairForm") {
     ev.preventDefault();
     if (!sync.pairFrom(f.querySelector("#pair-text").value)) toast("Bu bir kurulum linki değil. …/#k= ile başlayan linkin tamamını yapıştır.");
+    return;
+  }
+  if (f.id === "nudgeForm") {
+    ev.preventDefault();
+    const inp = f.querySelector("#nudge-text"), text = inp.value.trim(); if (!text) return;
+    sendNudge("ozel", text, f.querySelector("button")).then(ok => { if (ok) inp.value = ""; });
     return;
   }
   if (f.id === "giftForm") {
