@@ -433,7 +433,7 @@ body{margin:0}
 <div id="sheetSlot"></div>
 <div id="toastSlot"></div>
 
-<script>window.COCO_DIRECT = {"iv":"mhShVrCMsNoPHATX","ct":"2S9aCMsA9ZdmeB2a4aWomBrWbhC3yWqYbHQZjID9rR/O1rquhVb9q2kSe7sgbr3kHY/CkxKt9jB2mBnixt2BFkZqhpMghLKTJ0SwUXMZe9ea5kPst2ubLHtjz2T41fGtWufT/eEfR/efAawQp4h+sdRuf1Rp2XKbs7juOaEfU51x4omZ45/FSXoJLOyVNG1OYPBEXDy2ZVlQFRfEdAVLx92lVLK0","t":"coco"};</script>
+<script>window.COCO_DIRECT = {"iv":"2c6TOCIyUqC13VW2","ct":"wuAlYu2/4FWwKZLLc4qEyndl3SAbGNLbA2xXVQVadrSo7UtC+6XroJd8Ws0LVbAs8YVZQrG+oCImqxYaBH7x2zrvRgdJcWeF6zX1xJpYjlzFZMgz8IDTkJip8TNYGdQWLtQza5WqaVGx0F7fknkESqK+92YqDCtYI8JU6sHONiUQO1luxeJkGTCfTdbd8q79zYC6sqSJqa0K43X8gUuU9cXGo1ZS","t":"coco"};</script>
 <script>
 (() => {
 // ---------- types ----------
@@ -452,6 +452,7 @@ const WATER_GOAL = 10, GLASS_ML = 250;
 const LEVELS = ["Başlangıç","Orta","İleri","Rehabilitasyon"];
 const MOVE_LEVELS = ["Başlangıç","Orta","İleri"];
 const EQUIP = ["Mat","Reformer","Cadillac","Chair","Barrel","Ring & top"];
+const SELF_FAVKEYS = ["Favori renk","Favori yemek","Favori tatlı","Kahve / içecek","Sevdiğim çiçek","Film / dizi","Müzik / şarkı","Hobilerim","Sevmediklerim","Alerjilerim","Kıyafet bedenim","Ayakkabı numaram","Yüzük ölçüm"];
 const FAVKEYS = ["Favori renk","Favori yemek","Favori tatlı","Kahve / içecek","Sevdiği çiçek","Film / dizi","Müzik / şarkı","Hobileri","Sevmedikleri","Alerjileri","Kıyafet bedeni","Ayakkabı numarası","Yüzük ölçüsü"];
 
 // ---------- pilates move library: [name, equipment, level, short how-to] ----------
@@ -879,7 +880,9 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt
 const low = s => String(s||"").toLocaleLowerCase("tr");
 
 const blankManita = () => ({name:"", nick:"", birth:"", together:"", phone:"", favs:{}, gifts:[], days:[], notes:[], evals:[]});
-const blank = () => ({events:[], tasks:[], students:[], programs:[], water:{}, cycles:[], customMoves:[], favMoves:{}, manita:blankManita()});
+// Ekin's own page, same shape as Manitam minus the shared evaluations and the anniversary
+const blankSelf = () => ({name:"", nick:"", birth:"", phone:"", favs:{}, gifts:[], days:[], notes:[]});
+const blank = () => ({events:[], tasks:[], students:[], programs:[], water:{}, cycles:[], customMoves:[], favMoves:{}, manita:blankManita(), self:blankSelf()});
 // ---------- state & storage ----------
 const LS = "coco.v1", OLD_LS = "koko.v1";
 let state = null, persisted = false;
@@ -889,6 +892,7 @@ function lsSet(){ try { localStorage.setItem(LS, JSON.stringify(state)); } catch
 function normalize(s){
   const b = Object.assign(blank(), s||{});
   b.manita = Object.assign(blankManita(), b.manita||{});
+  b.self = Object.assign(blankSelf(), b.self||{});
   for (const st of b.students) { st.notes = st.notes || []; st.plans = st.plans || []; }
   return b;
 }
@@ -951,7 +955,7 @@ function usedOf(s){
   return n;
 }
 const leftOf = s => s.pkg - usedOf(s);
-const hasData = () => state.events.length + state.tasks.length + state.students.length + state.cycles.length + state.manita.notes.length > 0 || !!state.manita.name;
+const hasData = () => state.events.length + state.tasks.length + state.students.length + state.cycles.length + state.manita.notes.length + state.self.notes.length > 0 || !!state.manita.name || !!state.self.name;
 const BK = "coco.lastBackup", BK_SNOOZE = "coco.backupSnooze";
 const lsRead = k => { try { return localStorage.getItem(k) || ""; } catch { return ""; } };
 const lsWrite = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
@@ -1240,19 +1244,28 @@ function reglEnd(d){
   x.end = d; save(); render(); toast(`Regl ${daysBetween(x.start, d) + 1} gün sürdü`);
 }
 
+// ---------- Manitam / Ben ----------
+let mWho = "manita";
+try { if (localStorage.getItem("coco.mwho") === "self") mWho = "self"; } catch {}
+const prof = () => mWho === "self" ? state.self : state.manita;
+const isSelf = () => mWho === "self";
+
 // ---------- special days ----------
 function specialsOn(d){
   const md = d.slice(5), out = [], m = state.manita, nm = m.nick || m.name || "Manitam";
   if (m.birth && m.birth.slice(5) === md && d >= m.birth) out.push({t:`${nm} doğum günü`, sub:`${ageOn(m.birth, d)} yaşına giriyor`, k:"manita"});
   if (m.together && m.together.slice(5) === md && d > m.together) out.push({t:`${+d.slice(0,4) - +m.together.slice(0,4)}. yıldönümünüz`, sub: nm, k:"manita"});
   for (const x of m.days) if (x.yearly ? x.date.slice(5) === md && d >= x.date : x.date === d) out.push({t:x.title, sub:x.yearly ? "Her yıl" : "", k:"manita", id:x.id});
+  const me = state.self;
+  if (me.birth && me.birth.slice(5) === md && d >= me.birth) out.push({t:"Doğum günün", sub:`${ageOn(me.birth, d)} yaşına giriyorsun`, k:"manita"});
+  for (const x of me.days) if (x.yearly ? x.date.slice(5) === md && d >= x.date : x.date === d) out.push({t:x.title, sub:x.yearly ? "Her yıl" : "", k:"manita", id:x.id});
   for (const s of state.students) if (s.birth && s.birth.slice(5) === md) out.push({t:`${s.name} doğum günü`, sub:"Öğrenci", k:"stu", stu:s.id});
   return out;
 }
 function manitaUpcoming(){
-  const m = state.manita, nm = m.nick || m.name || "Manitam", out = [];
-  if (m.birth) { const d = nextOcc(m.birth); out.push({t:`${nm} doğum günü`, date:d, sub:`${ageOn(m.birth, d)} yaşına giriyor`}); }
-  if (m.together) { const d = nextOcc(m.together), y = +d.slice(0,4) - +m.together.slice(0,4); if (y > 0) out.push({t:`${y}. yıldönümünüz`, date:d, sub:`Başlangıç ${fmtDate(m.together)}`}); }
+  const m = prof(), nm = m.nick || m.name || "Manitam", out = [];
+  if (m.birth) { const d = nextOcc(m.birth); out.push(isSelf() ? {t:"Doğum günün", date:d, sub:`${ageOn(m.birth, d)} yaşına giriyorsun`} : {t:`${nm} doğum günü`, date:d, sub:`${ageOn(m.birth, d)} yaşına giriyor`}); }
+  if (!isSelf() && m.together) { const d = nextOcc(m.together), y = +d.slice(0,4) - +m.together.slice(0,4); if (y > 0) out.push({t:`${y}. yıldönümünüz`, date:d, sub:`Başlangıç ${fmtDate(m.together)}`}); }
   for (const x of m.days) { const d = x.yearly ? nextOcc(x.date) : x.date; if (d >= today()) out.push({t:x.title, date:d, sub:x.yearly ? "Her yıl" : "", id:x.id}); }
   return out.sort((a,b) => a.date < b.date ? -1 : 1);
 }
@@ -1838,13 +1851,16 @@ function evalSheet(who, date){
     }, true);
 }
 
+const mSeg = () => `<div class="seg" role="group" aria-label="Sayfa"><button data-mwho="manita" aria-pressed="${!isSelf()}">Manitam</button><button data-mwho="self" aria-pressed="${isSelf()}">Ben</button></div>`;
 function renderManita(){
+  if (isSelf()) return renderSelf();
   const m = state.manita, nm = m.nick || m.name;
   const up = manitaUpcoming();
   const favs = Object.entries(m.favs).filter(([,v]) => v);
   const tog = m.together && m.together <= today() ? daysBetween(m.together, today()) : null;
   const gifts = [...m.gifts].sort((a,b) => a.done - b.done);
   view.innerHTML = `
+    <div style="margin-top:8px">${mSeg()}</div>
     <div class="hero">
       ${nm ? `<div class="label">Manitam</div><h1>${esc(nm)}</h1>${m.nick && m.name ? `<div class="small muted">${esc(m.name)}</div>` : ""}`
            : `<h1>Manitam</h1><div class="small">Onunla ilgili her şey burada: özel günler, sevdikleri, ölçüleri, hediye fikirleri ve anılarınız.</div>`}
@@ -1862,6 +1878,32 @@ function renderManita(){
       <div class="list">${gifts.map(g => `<div class="task${g.done ? " done" : ""}"><button class="check${g.done ? " on" : ""}" data-gift-toggle="${g.id}" aria-label="${g.done ? "Alınmadı olarak işaretle" : "Alındı olarak işaretle"}">${g.done ? checkSvg : ""}</button><div class="body"><div class="title">${esc(g.text)}</div>${g.done ? `<div class="small muted">Alındı</div>` : ""}</div><button class="iconbtn" data-gift-del="${g.id}" aria-label="Sil">${xSvg}</button></div>`).join("")}</div></div>
     <div class="section"><div class="section-head"><h2>Notlar ve anılar</h2></div>
       <form id="mnoteForm" class="noteform"><textarea class="input" id="mn-text" placeholder="Bugün ne yaptınız, ne söyledi, aklında kalsın istediğin her şey…" aria-label="Not" required></textarea>
+        <div class="actions"><input class="input" type="date" id="mn-date" value="${today()}" aria-label="Tarih"><button class="btn">Kaydet</button></div></form>
+      <div class="notes">${[...m.notes].sort(byDateDesc).map(n => noteRow(n, "data-mnote-del")).join("")}</div></div>`;
+}
+// Ekin's own page: the same blocks, written about herself
+function renderSelf(){
+  const m = state.self, nm = m.nick || m.name;
+  const up = manitaUpcoming();
+  const favs = Object.entries(m.favs).filter(([,v]) => v);
+  const gifts = [...m.gifts].sort((a,b) => a.done - b.done);
+  view.innerHTML = `
+    <div style="margin-top:8px">${mSeg()}</div>
+    <div class="hero">
+      ${nm ? `<div class="label">Ben</div><h1>${esc(nm)}</h1>${m.nick && m.name ? `<div class="small muted">${esc(m.name)}</div>` : ""}`
+           : `<h1>Ben</h1><div class="small">Kendinle ilgili her şey burada: doğum günün, sevdiklerin, ölçülerin, istek listen, kendi notların ve özel günlerin.</div>`}
+      ${m.birth ? `<div class="small muted">Doğum günün ${fmtDate(m.birth)} · ${ageOn(m.birth, today())} yaşındasın</div>` : ""}
+      <div class="actions"><button class="btn sm warm" data-edit-manita>${nm ? "Bilgilerimi düzenle" : "Bilgilerimi gir"}</button></div>
+    </div>
+    <div class="section"><div class="section-head"><h2>Özel günlerim</h2><button class="btn sm ghost" data-new-mday>Özel gün ekle</button></div>
+      <div class="list">${up.length ? up.map(x => specialRow({...x, k:"manita"}, x.date)).join("") : `<div class="empty">Doğum gününü girince burada geri sayım başlar. Mezuniyet, ailenden birinin doğum günü gibi günleri de ekleyebilirsin.</div>`}</div></div>
+    <div class="section"><div class="section-head"><h2>Benimle ilgili</h2><button class="btn sm ghost" data-edit-manita>Düzenle</button></div>
+      ${favs.length ? `<div class="kv">${favs.map(([k,v]) => `<div><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div></div>`).join("")}</div>` : `<div class="empty">Sevdiğin renk, yemek, çiçek, beden, ayakkabı numaran, yüzük ölçün… “Düzenle”ye dokunup ekle.</div>`}</div>
+    <div class="section"><div class="section-head"><h2>İstek listem</h2></div>
+      <form id="giftForm" class="inline"><input class="input" id="gift-text" placeholder="ör. Yeni pilates matı" aria-label="İstek" required><button class="btn">Ekle</button></form>
+      <div class="list">${gifts.map(g => `<div class="task${g.done ? " done" : ""}"><button class="check${g.done ? " on" : ""}" data-gift-toggle="${g.id}" aria-label="${g.done ? "Alınmadı olarak işaretle" : "Alındı olarak işaretle"}">${g.done ? checkSvg : ""}</button><div class="body"><div class="title">${esc(g.text)}</div></div><button class="iconbtn" data-gift-del="${g.id}" aria-label="Sil">${xSvg}</button></div>`).join("") || `<div class="empty">Almak ya da istemek istediğin şeyleri buraya yaz.</div>`}</div></div>
+    <div class="section"><div class="section-head"><h2>Notlarım</h2></div>
+      <form id="mnoteForm" class="noteform"><textarea class="input" id="mn-text" placeholder="Aklında kalsın istediğin her şey…" aria-label="Not" required></textarea>
         <div class="actions"><input class="input" type="date" id="mn-date" value="${today()}" aria-label="Tarih"><button class="btn">Kaydet</button></div></form>
       <div class="notes">${[...m.notes].sort(byDateDesc).map(n => noteRow(n, "data-mnote-del")).join("")}</div></div>`;
 }
@@ -2335,16 +2377,16 @@ function cycleSheet(){
 }
 
 function manitaSheet(){
-  const m = state.manita;
-  let rows = [...FAVKEYS.map(k => [k, m.favs[k] || ""]), ...Object.entries(m.favs).filter(([k]) => !FAVKEYS.includes(k))];
+  const m = prof(), self = isSelf(), KEYS = self ? SELF_FAVKEYS : FAVKEYS;
+  let rows = [...KEYS.map(k => [k, m.favs[k] || ""]), ...Object.entries(m.favs).filter(([k]) => !KEYS.includes(k))];
   const f = (k, label, extra = "") => `<label class="field"><span>${label}</span><input class="input" id="m-${k}" value="${esc(m[k] || "")}" ${extra}></label>`;
   openSheet(`
-    <div class="head"><h2>Manitam</h2>${closeBtn}</div>
+    <div class="head"><h2>${self ? "Bilgilerim" : "Manitam"}</h2>${closeBtn}</div>
     <form id="mForm" class="field" style="gap:14px">
-      <div class="row2">${f("name", "Adı soyadı")}${f("nick", "Ona ne diyorsun?", 'placeholder="ör. Aşkım"')}</div>
-      <div class="row2">${f("birth", "Doğum günü", 'type="date"')}${f("together", "Birlikteliğin başladığı gün", 'type="date"')}</div>
-      ${f("phone", "Telefon", 'inputmode="tel"')}
-      <div class="field"><span>Sevdikleri, ölçüleri ve diğer bilgiler</span><div class="exed" id="m-favs"></div>
+      <div class="row2">${f("name", self ? "Adın soyadın" : "Adı soyadı")}${f("nick", self ? "Sana ne diyorlar?" : "Ona ne diyorsun?", 'placeholder="ör. Aşkım"')}</div>
+      <div class="row2">${f("birth", self ? "Doğum günün" : "Doğum günü", 'type="date"')}${self ? f("phone", "Telefonun", 'inputmode="tel"') : f("together", "Birlikteliğin başladığı gün", 'type="date"')}</div>
+      ${self ? "" : f("phone", "Telefon", 'inputmode="tel"')}
+      <div class="field"><span>${self ? "Sevdiklerin, ölçülerin ve diğer bilgiler" : "Sevdikleri, ölçüleri ve diğer bilgiler"}</span><div class="exed" id="m-favs"></div>
         <button type="button" class="btn sm ghost" id="m-add" style="align-self:flex-start">Başka bilgi ekle</button></div>
       <div class="actions"><span class="sp"></span><button type="button" class="btn line" data-close>Vazgeç</button><button class="btn warm" type="submit">Kaydet</button></div>
     </form>`, sh => {
@@ -2359,7 +2401,7 @@ function manitaSheet(){
       sh.querySelector("#m-add").addEventListener("click", () => { rows.push(["", ""]); draw(rows.length - 1); });
       sh.querySelector("#mForm").addEventListener("submit", ev => {
         ev.preventDefault();
-        for (const k of ["name","nick","birth","together","phone"]) m[k] = sh.querySelector("#m-" + k).value.trim();
+        for (const k of ["name","nick","birth","together","phone"]) { const el = sh.querySelector("#m-" + k); if (el) m[k] = el.value.trim(); }
         m.favs = {}; for (const [k,v] of rows) if (k.trim() && v.trim()) m.favs[k.trim()] = v.trim();
         save(); closeSheet(); render(); toast("Kaydedildi");
       });
@@ -2367,7 +2409,7 @@ function manitaSheet(){
 }
 
 function mdaySheet(id){
-  const m = state.manita, x = id ? m.days.find(d => d.id === id) : null;
+  const m = id ? [state.manita, state.self].find(p => p.days.some(d => d.id === id)) || prof() : prof(), x = id ? m.days.find(d => d.id === id) : null;
   const v = x ? {...x} : {title:"", date:today(), yearly:true};
   openSheet(`
     <div class="head"><h2>${x ? "Özel günü düzenle" : "Yeni özel gün"}</h2>${closeBtn}</div>
@@ -2878,13 +2920,14 @@ document.addEventListener("click", ev => {
   if (el.hasAttribute("data-edit-manita")) { manitaSheet(); return; }
   if (el.hasAttribute("data-new-mday")) { mdaySheet(null); return; }
   if (d.mday) { mdaySheet(d.mday); return; }
-  if (d.giftToggle) { const g = state.manita.gifts.find(x => x.id === d.giftToggle); g.done = !g.done; save(); render(); return; }
-  if (d.giftDel) { state.manita.gifts = state.manita.gifts.filter(x => x.id !== d.giftDel); save(); render(); toast("Silindi"); return; }
+  if (d.mwho) { mWho = d.mwho; try { localStorage.setItem("coco.mwho", mWho); } catch {} render(); return; }
+  if (d.giftToggle) { const g = prof().gifts.find(x => x.id === d.giftToggle); g.done = !g.done; save(); render(); return; }
+  if (d.giftDel) { const m = prof(); m.gifts = m.gifts.filter(x => x.id !== d.giftDel); save(); render(); toast("Silindi"); return; }
   if (d.me) { setMe(d.me); render(); return; }
   if (el.hasAttribute("data-me-reset")) { setMe(""); render(); return; }
   if (d.evday) { if (d.evday <= today()) { evalDay = d.evday; render(); } return; }
   if (d.eval) { evalSheet(d.eval, d.day || today()); return; }
-  if (d.mnoteDel) { state.manita.notes = state.manita.notes.filter(x => x.id !== d.mnoteDel); save(); render(); toast("Not silindi"); return; }
+  if (d.mnoteDel) { const m = prof(); m.notes = m.notes.filter(x => x.id !== d.mnoteDel); save(); render(); toast("Not silindi"); return; }
   if (d.mpick) {
     closeSheet();
     if (d.mpick === "day") mdaySheet(null); else if (d.mpick === "info") manitaSheet(); else focusEl(d.mpick === "gift" ? "gift-text" : "mn-text");
@@ -2910,11 +2953,11 @@ document.addEventListener("submit", ev => {
   if (f.id === "giftForm") {
     ev.preventDefault();
     const text = f.querySelector("#gift-text").value.trim(); if (!text) return;
-    state.manita.gifts.unshift({id:uid(), text, done:false}); save(); render(); focusEl("gift-text"); toast("Hediye fikri eklendi");
+    prof().gifts.unshift({id:uid(), text, done:false}); save(); render(); focusEl("gift-text"); toast(isSelf() ? "İstek listene eklendi" : "Hediye fikri eklendi");
   } else if (f.id === "mnoteForm") {
     ev.preventDefault();
     const text = f.querySelector("#mn-text").value.trim(); if (!text) return;
-    state.manita.notes.push({id:uid(), date: f.querySelector("#mn-date").value || today(), text}); save(); render(); toast("Not kaydedildi");
+    prof().notes.push({id:uid(), date: f.querySelector("#mn-date").value || today(), text}); save(); render(); toast("Not kaydedildi");
   }
 });
 document.getElementById("backupBtn").addEventListener("click", backupSheet);
