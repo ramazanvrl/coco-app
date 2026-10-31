@@ -52,12 +52,17 @@ button{cursor:pointer}
 
 /* header */
 header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);padding-block:14px 10px;display:flex;align-items:center;gap:12px}
+header.top .iconbtn{padding:5px}
+header.top .iconbtn + .iconbtn{margin-left:-10px}
 .logo{font-family:var(--f-display);font-weight:700;font-size:28px;letter-spacing:.06em;color:var(--lilac-deep);display:flex;align-items:center;gap:8px;line-height:1}
 .logo svg{width:40px;height:40px;flex:none;transform-origin:50% 90%;animation:bob 3.2s ease-in-out infinite}
+@media (max-width:370px){header.top{gap:8px}.logo{font-size:22px;gap:6px}.logo svg{width:32px;height:32px}.top .date{font-size:12px}.pill{font-size:10.5px;padding:3px 7px}}
 @keyframes bob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-2px) rotate(-3deg)}}
 @media (prefers-reduced-motion:reduce){.logo svg{animation:none}}
-.top .date{color:var(--muted);font-size:13px;margin-left:auto;text-align:right}
-.pill{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;letter-spacing:.03em;padding:3px 9px;border-radius:99px;background:var(--lilac-soft);color:var(--lilac-deep)}
+.top .date{color:var(--muted);font-size:13px;margin-left:auto;text-align:right;min-width:0}
+.top .date .pill{max-width:100%}
+.top .date .pill span{overflow:hidden;text-overflow:ellipsis}
+.pill{white-space:nowrap;display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;letter-spacing:.03em;padding:3px 9px;border-radius:99px;background:var(--lilac-soft);color:var(--lilac-deep)}
 .pill i{width:7px;height:7px;border-radius:50%;background:currentColor;display:block}
 .pill[data-mode="ok"]{background:color-mix(in srgb,var(--ok) 14%,var(--surface));color:var(--ok)}
 .pill[data-mode="error"],.pill[data-mode="badkey"],.pill[data-mode="offline"]{background:color-mix(in srgb,var(--t-sinav) 14%,var(--surface));color:var(--t-sinav)}
@@ -380,6 +385,7 @@ body{margin:0}
       COCO
     </div>
     <div class="date"><div id="hdrDate"></div><span class="pill" id="syncPill" role="button" tabindex="0" title="Dokun: eşitle ya da cihazı bağla"><i></i><span>Bu cihazda</span></span></div>
+    <button class="iconbtn" id="bellBtn" aria-label="Bildirimler"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6.5 2 6.5H4S6 14 6 9"/><path d="M10 19a2 2 0 0 0 4 0"/></svg></button>
     <button class="iconbtn" id="backupBtn" aria-label="Yedekleme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></button>
   </header>
   <div id="bannerSlot"></div>
@@ -400,7 +406,7 @@ body{margin:0}
 <div id="sheetSlot"></div>
 <div id="toastSlot"></div>
 
-<script>window.COCO_DIRECT = {"iv":"smZvLLaS2vv0anla","ct":"S060+Xfd6MFjOFI6bxLQXZNGxtpUbJHSlzbnhX1lafIUFy9NEnDYrL7XC0FI378dlJe5w6IV5zsJLi+3BPnbO+mOsQb3RaWaDGNtBDLMM2RYI6b5Gv2dHl+7B55bY/YCxQIgqoUqyH/F3yGIDaYLcNSSJQWHpWYEZbU/K/SB+lasjbcIkqc1PkwqV4Ax4kwsQRuUX6hjEd4VBGh90jMu2+q0grm/","t":"coco"};</script>
+<script>window.COCO_DIRECT = {"iv":"2xSKafqrmKClzrxY","ct":"wSavAZFguDc/ic1HBPSkRis78wwIhFudCG8MrDKLwqDgakbXZMFtOtJw+0GCvisOTHjvxxLcHM6USiy4Z1+Jbezb/wyyJvldj7bf/yd3GKLgjmm0MfeEY3E1n3NBYabLqxwwFIBpOYxx/E5VV2/dxcXRtqaHzjMTJIjqN0YXjZ5+4KDuGUu2sef0814P2Qx1kEK5Wgstin046Z0W7YErBBkiXdPs","t":"coco"};</script>
 <script>
 (() => {
 // ---------- types ----------
@@ -738,19 +744,20 @@ const sync = (() => {
     return connPromise;
   }
   const fakeRes = (status, obj) => ({status, ok: status >= 200 && status < 300, json: async () => obj});
+  const neonSql = async (conn, queries) => {
+    const r = await fetch("https://" + new URL(conn).hostname.replace(/^[^.]+\./, "api.") + "/sql", {method:"POST", cache:"no-store",
+      headers:{"Neon-Connection-String":conn, "Neon-Raw-Text-Output":"true", "Neon-Array-Mode":"false"},
+      body: J(queries.length === 1 ? queries[0] : {queries})});
+    if (!r.ok) throw new Error("neon " + r.status);
+    const j = await r.json();
+    return queries.length === 1 ? [j] : j.results;
+  };
   async function directApi(method, body, q){
     const conn = await directConn();
     if (!conn) { connPromise = null; return fakeRes(401, {error:"unauthorized"}); }
     const T = window.COCO_DIRECT.t || "coco";
     const store = T + "_store", hist = T + "_history";
-    const sqlRun = async queries => {
-      const r = await fetch("https://" + new URL(conn).hostname.replace(/^[^.]+\./, "api.") + "/sql", {method:"POST", cache:"no-store",
-        headers:{"Neon-Connection-String":conn, "Neon-Raw-Text-Output":"true", "Neon-Array-Mode":"false"},
-        body: J(queries.length === 1 ? queries[0] : {queries})});
-      if (!r.ok) throw new Error("neon " + r.status);
-      const j = await r.json();
-      return queries.length === 1 ? [j] : j.results;
-    };
+    const sqlRun = queries => neonSql(conn, queries);
     const current = () => sqlRun([{query:`SELECT version, data::text AS data FROM ${store} WHERE id = 1`, params:[]}]).then(([r]) => r.rows[0]);
     if (method === "GET") {
       const row = await current();
@@ -772,6 +779,23 @@ const sync = (() => {
     }
     const row = await current();   // someone else saved first: same 409 contract as the server
     return fakeRes(409, {version: row ? +row.version : 0, state: row ? JSON.parse(row.data) : null});
+  }
+  // push subscriptions (one row per phone) live in their own table, apart from the agenda
+  async function push(method, body){
+    if (!key) return false;
+    if (!window.COCO_DIRECT) {
+      const r = await fetch("/api/push", {method, cache:"no-store", headers:{"content-type":"application/json", "x-coco-key":key}, body:J(body)});
+      return r.ok;
+    }
+    const conn = await directConn();
+    if (!conn) { connPromise = null; return false; }
+    const P = (window.COCO_DIRECT.t || "coco") + "_push";
+    await neonSql(conn, method === "POST" ? [
+      {query:`CREATE TABLE IF NOT EXISTS ${P} (endpoint text PRIMARY KEY, sub jsonb NOT NULL, who text NOT NULL DEFAULT '', prefs jsonb NOT NULL DEFAULT '{}', updated_at timestamptz NOT NULL DEFAULT now())`, params:[]},
+      {query:`INSERT INTO ${P} (endpoint, sub, who, prefs) VALUES ($1, $2::jsonb, $3, $4::jsonb) ON CONFLICT (endpoint) DO UPDATE SET sub = EXCLUDED.sub, who = EXCLUDED.who, prefs = EXCLUDED.prefs, updated_at = now()`,
+       params:[body.sub.endpoint, J(body.sub), body.who || "", J(body.prefs || {})]},
+    ] : [{query:`DELETE FROM ${P} WHERE endpoint = $1`, params:[body.endpoint]}]);
+    return true;
   }
   const show = s => { status = s; setPill(pillMode()); };
   function adopt(st){
@@ -844,7 +868,7 @@ const sync = (() => {
     location.replace(location.pathname + location.search + "#k=" + mm[1]); location.reload();
     return true;
   }
-  return { run: () => check(true), changed, unlink, pairFrom, get status(){ return status; }, get key(){ return key; } };
+  return { run: () => check(true), changed, unlink, pairFrom, push, get status(){ return status; }, get key(){ return key; } };
 })();
 const progOf = id => state.programs.find(p => p.id === id);
 const progOptions = sel => `<option value="">Program yok</option>` + state.programs.map(p => `<option value="${p.id}" ${p.id === sel ? "selected" : ""}>${esc(p.name)} · ${esc(p.equip)}</option>`).join("");
@@ -973,6 +997,7 @@ function render(){
   const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
   bs.innerHTML = !sync.key && standalone ? `<div class="banner"><span class="grow"><b>Ana ekrandaki COCO henüz ortak kayda bağlı değil.</b> iPhone ana ekran uygulamasına ayrı hafıza veriyor. Kurulum linkini kopyalayıp buraya yapıştır, kayıtların gelsin.</span>
       <form id="pairForm" class="inline" style="flex:1 1 100%"><input class="input" id="pair-text" placeholder="Kurulum linkini yapıştır" aria-label="Kurulum linki" autocomplete="off" autocapitalize="off" spellcheck="false" required><button class="btn">Bağla</button></form></div>`
+    : pushOffer() ? `<div class="banner"><span class="grow"><b>Bildirimler açılsın mı?</b> Sabah özeti, ders ve sınav hatırlatmaları telefonuna gelsin. Neyin geleceğini zil simgesinden seçebilirsin.</span><button class="btn sm" data-act="push-on">Bildirimleri aç</button><button class="btn sm ghost" data-act="push-later">Şimdi değil</button></div>`
     : fresh && tab === "bugun" ? `<div class="banner"><span class="grow"><b>COCO'ya hoş geldin!</b> Sağ alttaki + ile ilk dersini, pilates seansını ya da ödevini ekle. Öğrencilerini “Öğrenciler” sekmesinden, döngünü aşağıdaki regl kartından girebilirsin. Kayıtların bu cihazda saklanır.</span></div>`
     : backupDue() ? `<div class="banner"><span class="grow"><b>Yedek alma zamanı.</b> Kayıtların sadece bu cihazda duruyor${lsRead(BK) ? `, son yedek ${fmtShort(lsRead(BK))}` : " ve henüz yedek almadın"}. Telefon değişir ya da tarayıcı temizlenirse kaybolmasın.</span><button class="btn sm" data-act="backup">Yedek al</button><button class="btn sm ghost" data-act="snooze">Sonra</button></div>` : "";
   ({bugun:renderToday, takvim:renderCal, gorevler:renderTasks, ogrenciler:renderStudents, manitam:renderManita})[tab]();
@@ -1258,6 +1283,84 @@ const noteRow = (n, attr) => `<div class="note"><div class="body"><time>${fmtDat
 const byDateDesc = (a,b) => a.date < b.date ? 1 : a.date > b.date ? -1 : 0;
 
 // ---------- manitam ----------
+// ---------- notifications ----------
+// The phone subscribes once; the hourly sender (bildirim/gonder.mjs) does the timing. iPhone
+// allows this only for the home-screen app (iOS 16.4+), and asks for permission once, after a tap.
+const VAPID_PUBLIC = "BNgRBStfvARVyGVIOHwK77cvWMwaqvRX7aqk1iWr9FMfarQtYWkkcmkLszyW0ov2GO7vQryKfzFLpGuuc7lN7B0";
+const PUSH_ASKED = "coco.pushAsked", PUSH_PREFS = "coco.pushPrefs", PUSH_SAVED = "coco.pushSaved";
+const PUSH_KINDS = [
+  ["sabah", "Sabah özeti", "Her sabah 06:00'da günün planı"],
+  ["seans", "Ders ve seans", "Başlamadan 1 saat önce"],
+  ["uye", "Üyelerine hatırlat", "Ders günü 10:00'da; öğleden önceki dersler için bir gün önce 18:00'de"],
+  ["sinav", "Sınav ve ödev", "Bir gün önce 20:00'de; saati girilmiş sınavlarda ayrıca 2 saat önce"],
+  ["deger", "Gün sonu değerlendirmesi", "21:00'de, henüz doldurmadıysan"],
+  ["paket", "Paket bitiyor", "Bir öğrencinin 1 dersi kalınca ve paketi bitince"],
+  ["regl", "Regl yaklaşıyor", "Tahmini başlangıçtan 2 gün önce"],
+];
+const pushSupported = () => "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+const pushPerm = () => pushSupported() ? Notification.permission : "unsupported";
+const pushPrefs = () => { let p = {}; try { p = JSON.parse(lsRead(PUSH_PREFS) || "{}"); } catch {} return Object.fromEntries(PUSH_KINDS.map(([k]) => [k, p[k] !== false])); };
+const pushOffer = () => !!sync.key && pushPerm() === "default" && !lsRead(PUSH_ASKED);
+let swReg = null;
+const swReady = () => swReg || (swReg = navigator.serviceWorker.register("sw.js").then(() => navigator.serviceWorker.ready).catch(e => { swReg = null; throw e; }));
+const b64url = s => { const b = atob((s + "=".repeat((4 - s.length % 4) % 4)).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from(b, c => c.charCodeAt(0)); };
+// make sure this phone's subscription, name and choices are on the server; writes only when something changed
+async function pushSync(){
+  if (pushPerm() !== "granted" || !sync.key) return false;
+  try {
+    const reg = await swReady();
+    const sub = await reg.pushManager.getSubscription() || await reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:b64url(VAPID_PUBLIC)});
+    const row = {sub: sub.toJSON(), who: meWho(), prefs: pushPrefs()};
+    const sig = J([row.sub.endpoint, row.who, row.prefs]);
+    if (sig === lsRead(PUSH_SAVED)) return true;
+    if (!await sync.push("POST", row)) return false;
+    lsWrite(PUSH_SAVED, sig);
+    return true;
+  } catch { return false; }
+}
+async function pushEnable(){
+  if (!pushSupported()) { toast("Bu tarayıcı bildirim desteklemiyor"); return; }
+  let perm = Notification.permission;
+  if (perm === "default") { try { perm = await Notification.requestPermission(); } catch { perm = Notification.permission; } }
+  if (perm !== "granted") { toast("Bildirim izni verilmedi"); return; }
+  toast(await pushSync() ? "Bildirimler açıldı" : "Bildirimler açıldı ama sunucuya kaydedilemedi, internet gelince tekrar dener");
+}
+function pushSheet(){
+  const perm = pushPerm(), prefs = pushPrefs();
+  const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  const status = perm === "unsupported"
+      ? (/iPhone|iPad/.test(navigator.userAgent) && !standalone
+        ? "iPhone'da bildirimler yalnızca ana ekrana eklenmiş COCO'da çalışır. Safari'de Paylaş > Ana Ekrana Ekle ile ekle, oradan açıp tekrar dene."
+        : "Bu tarayıcı bildirim desteklemiyor. iPhone'da iOS 16.4 veya üstü gerekir.")
+    : perm === "denied" ? "Bildirim izni kapalı. Ayarlar > Bildirimler > COCO'dan açabilirsin."
+    : !sync.key ? "Bildirimler için bu cihazın ortak kayda bağlı olması gerekiyor."
+    : perm === "granted" ? "Bildirimler bu telefonda açık." : "Bildirimler henüz kapalı.";
+  openSheet(`
+    <div class="head"><h2>Bildirimler</h2>${closeBtn}</div>
+    <div class="field" style="gap:14px">
+      <div class="small">${esc(status)}</div>
+      ${perm === "default" && sync.key ? `<div class="actions" style="justify-content:flex-start"><button type="button" class="btn" id="p-on">Bildirimleri aç</button></div>` : ""}
+      ${perm === "granted" ? `<div class="actions" style="justify-content:flex-start"><button type="button" class="btn sm line" id="p-test">Deneme bildirimi gönder</button></div>` : ""}
+      <div class="field" style="gap:12px"><span>Neler gelsin?</span>
+        ${PUSH_KINDS.map(([k, n, d]) => `<label class="toggle" style="align-items:flex-start"><input type="checkbox" data-pk="${k}" ${prefs[k] ? "checked" : ""}><span>${esc(n)}<br><small class="muted" style="font-weight:400">${esc(d)}</small></span></label>`).join("")}
+      </div>
+      ${!meWho() ? `<div class="small muted">Gün sonu değerlendirmesi hatırlatması için Manitam sayfasında bu telefonu kimin kullandığını seç.</div>` : ""}
+      <div class="small muted">Seçimler bu telefona özel; Ramazan ve Ekin ayrı ayrı seçer. Bildirimler birkaç dakika gecikebilir.</div>
+    </div>`, sh => {
+      const on = sh.querySelector("#p-on");
+      on && on.addEventListener("click", async () => { lsWrite(PUSH_ASKED, "1"); await pushEnable(); closeSheet(); render(); pushSheet(); });
+      const test = sh.querySelector("#p-test");
+      test && test.addEventListener("click", async () => {
+        try { const reg = await swReady(); await reg.showNotification("COCO", {body:"Bildirimler bu telefonda çalışıyor.", icon:"icons/icon-192.png"}); }
+        catch { toast("Deneme bildirimi gösterilemedi"); }
+      });
+      sh.addEventListener("change", ev => {
+        const k = ev.target.dataset && ev.target.dataset.pk; if (!k) return;
+        const p = pushPrefs(); p[k] = ev.target.checked; lsWrite(PUSH_PREFS, J(p)); pushSync();
+      });
+    });
+}
+
 // ---------- daily evaluation (Manitam) ----------
 // Ramazan and Ekin each rate the other at the end of the day. One record per person per day,
 // id "<date>_<who>", so edits from both phones merge cleanly. The other person's answers for a day
@@ -1282,7 +1385,7 @@ const otherOf = who => who === "ramazan" ? "ekin" : "ramazan";
 const ME_KEY = "coco.me";
 let meMemo = null, evalDay = today();
 const meWho = () => { if (meMemo === null) meMemo = lsRead(ME_KEY); return PEOPLE[meMemo] ? meMemo : ""; };
-const setMe = v => { meMemo = v; lsWrite(ME_KEY, v); };
+const setMe = v => { meMemo = v; lsWrite(ME_KEY, v); pushSync(); };
 const evalOf = (date, who) => state.manita.evals.find(e => e.date === date && e.who === who);
 const evalAvg = e => e.scores.reduce((a,b) => a + b, 0) / e.scores.length;
 const fmtScore = n => n.toLocaleString("tr-TR", {minimumFractionDigits:1, maximumFractionDigits:1});
@@ -2371,6 +2474,8 @@ document.addEventListener("click", ev => {
   if (d.pick === "mday") { closeSheet(); mdaySheet(null); return; }
   if (d.pick) { closeSheet(); if (d.pick === "task") taskSheet(null, "odev"); else eventSheet(null, tab === "takvim" ? selDay : today(), d.pick); return; }
   if (d.act === "backup") { backupSheet(); return; }
+  if (d.act === "push-on") { lsWrite(PUSH_ASKED, "1"); pushEnable().then(render); return; }
+  if (d.act === "push-later") { lsWrite(PUSH_ASKED, "1"); render(); toast("Sonra zil simgesinden açabilirsin"); return; }
   if (d.act === "snooze") { lsWrite(BK_SNOOZE, addDays(today(), 7)); render(); return; }
 
 });
@@ -2392,6 +2497,8 @@ document.addEventListener("submit", ev => {
   }
 });
 document.getElementById("backupBtn").addEventListener("click", backupSheet);
+document.getElementById("bellBtn").addEventListener("click", pushSheet);
+pushSync();
 document.getElementById("syncPill").addEventListener("click", () => {
   if (sync.key) { sync.run(); toast("Diğer cihazdaki değişikliklere bakılıyor"); }
   else { backupSheet(); setTimeout(() => { const i = document.getElementById("pair-text"); if (i) { i.scrollIntoView({block:"center"}); i.focus(); } }, 50); }
