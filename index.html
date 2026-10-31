@@ -104,6 +104,15 @@ h2{font-size:18px}
 .empty{border:1.5px dashed var(--line);border-radius:var(--r);padding:18px;text-align:center;color:var(--muted);font-size:14px}
 
 /* tasks */
+.swipe{position:relative;border-radius:var(--r);overflow:hidden}
+.swipe>.front{position:relative;z-index:1;touch-action:pan-y;transition:transform .22s ease}
+.swipe.drag>.front{transition:none}
+.swipe>.front>*{width:100%}
+.swipe>.acts{position:absolute;inset:0 0 0 auto;display:flex;visibility:hidden}
+.swipe.drag>.acts,.swipe.open>.acts{visibility:visible}
+.sa{border:0;color:#fff;font-weight:700;font-size:13px;padding:0 12px;min-width:74px}
+.sa.ok{background:var(--ok)}.sa.ed{background:var(--lilac-deep)}.sa.del{background:var(--danger)}
+.task .body{background:none;border:0;padding:0;text-align:left}
 .task{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px}
 .task .body{flex:1;min-width:0}
 .task .title{font-weight:700;overflow-wrap:anywhere}
@@ -335,6 +344,24 @@ textarea.input{resize:vertical;min-height:64px}
 .move .nm{font-weight:700;display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
 .move p{margin:2px 0 0;font-size:13px;color:var(--muted)}
 .move .add{flex:none;border:0;border-radius:10px;background:var(--lilac-soft);color:var(--lilac-deep);font-weight:700;font-size:13px;padding:6px 10px;white-space:nowrap}
+.move.tap{align-items:center;padding:0 4px 0 0}
+.move.tap .open{flex:1;min-width:0;display:flex;gap:10px;align-items:center;text-align:left;background:none;border:0;padding:9px 0 9px 12px;color:inherit}
+.move.tap .open>svg{flex:none;width:16px;height:16px;color:var(--muted)}
+.star{flex:none;border:0;background:none;font-size:20px;line-height:1;padding:8px;color:var(--line)}
+.star.on{color:#E0A526}
+.mvf summary{font-weight:700;cursor:pointer;color:var(--lilac-deep)}
+.mvf>.chips,.mvf>.label,.mvf>.banner{margin-top:8px}
+.mvd .tags{display:flex;gap:6px;flex-wrap:wrap}
+.mvd .tags span{font-size:12.5px;font-weight:700;padding:4px 12px;border-radius:99px;color:#fff;background:var(--lilac-deep)}
+.mvd .tags span.eq{background:#C9A15F}
+.mvd .how{font-size:14.5px;line-height:1.5}
+.mvgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.mvc{display:flex;gap:10px;align-items:flex-start;background:var(--lilac-soft);border-radius:12px;padding:10px 12px;font-size:13.5px;line-height:1.4}
+.mvc svg{flex:none;width:22px;height:22px;color:var(--lilac-deep);margin-top:1px}
+.mvc b{display:block;margin-bottom:2px}
+.mvc.warn{background:color-mix(in srgb,var(--danger) 12%,var(--surface))}.mvc.warn svg{color:var(--danger)}
+.mvc.safe{background:color-mix(in srgb,var(--ok) 13%,var(--surface))}.mvc.safe svg{color:var(--ok)}
+.mvc.wide{grid-column:1/-1}
 .move .add.on{background:var(--lilac);color:var(--on-lilac)}
 .grp{margin-top:10px}
 
@@ -399,14 +426,14 @@ body{margin:0}
   <button data-tab="bugun"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>Bugün</button>
   <button data-tab="takvim"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Takvim</button>
   <button data-tab="gorevler"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 6 1.5 1.5L7.5 5M3.5 12l1.5 1.5L7.5 11M3.5 18l1.5 1.5L7.5 17"/></svg>Okul</button>
-  <button data-tab="ogrenciler"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><circle cx="17.5" cy="9" r="2.5"/><path d="M17 14.6c2.4.2 4 1.8 4.5 4.4"/></svg>Öğrenciler</button>
+  <button data-tab="ogrenciler"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><circle cx="17.5" cy="9" r="2.5"/><path d="M17 14.6c2.4.2 4 1.8 4.5 4.4"/></svg>Pilates</button>
   <button data-tab="manitam"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5s-7.5-4.6-9.3-9.3C1.4 7.6 3.8 4.5 7 4.5c2 0 3.5 1.1 5 3 1.5-1.9 3-3 5-3 3.2 0 5.6 3.1 4.3 6.7C19.5 15.9 12 20.5 12 20.5z"/></svg>Manitam</button>
 </div></nav>
 
 <div id="sheetSlot"></div>
 <div id="toastSlot"></div>
 
-<script>window.COCO_DIRECT = {"iv":"2xSKafqrmKClzrxY","ct":"wSavAZFguDc/ic1HBPSkRis78wwIhFudCG8MrDKLwqDgakbXZMFtOtJw+0GCvisOTHjvxxLcHM6USiy4Z1+Jbezb/wyyJvldj7bf/yd3GKLgjmm0MfeEY3E1n3NBYabLqxwwFIBpOYxx/E5VV2/dxcXRtqaHzjMTJIjqN0YXjZ5+4KDuGUu2sef0814P2Qx1kEK5Wgstin046Z0W7YErBBkiXdPs","t":"coco"};</script>
+<script>window.COCO_DIRECT = {"iv":"jFutwzcQgJxv+rjf","ct":"wPDsJU2Y2vI7XKySMbLS+QfpFTYJRnxII7QQQ50OnuTlmg+m6DCbBID6mQIJn7uOrysEP4YPUch7lZ8bl1pK4QopcIqI1u8dfC8Nk0J7BoP9G5qQxybK/dBFYkBsUC89nGAxVJCx3zwDLRxR8yq2oXveImc/oIeuEQk4yijwFthCoAQA671o7sJ+SVQaT+brfKRvmf63wSS+ECevnhd3rzwGXpPV","t":"coco"};</script>
 <script>
 (() => {
 // ---------- types ----------
@@ -428,6 +455,274 @@ const EQUIP = ["Mat","Reformer","Cadillac","Chair","Barrel","Ring & top"];
 const FAVKEYS = ["Favori renk","Favori yemek","Favori tatlı","Kahve / içecek","Sevdiği çiçek","Film / dizi","Müzik / şarkı","Hobileri","Sevmedikleri","Alerjileri","Kıyafet bedeni","Ayakkabı numarası","Yüzük ölçüsü"];
 
 // ---------- pilates move library: [name, equipment, level, short how-to] ----------
+// Detail cards for every built-in move: focus, muscles, dose, breath, common mistakes,
+// easier and harder versions, teacher cue, cautions. Same order as INFO_FIELDS.
+const INFO_FIELDS = [
+  ["odak", "Odak"], ["kas", "Çalışan kaslar"], ["doz", "Doz"], ["nefes", "Nefes"], ["hata", "Sık yapılan hatalar"],
+  ["kolay", "Kolay"], ["ileri", "İleri"], ["yon", "Eğitmen yönergesi"], ["dikkat", "Dikkat"],
+];
+const LIB_INFO = {
+  "Lateral nefes": ["Kaburgaları yanlara ve arkaya açarak nefes alma; tüm derslerin temeli.", "Diyafram, interkostaller, transversus abdominis, pelvik taban.", "5-10 nefes", "Burundan alırken kaburgalar ellere doğru açılır, ağızdan verirken karın içe ve yukarı çekilir.", "Omuzları kulaklara kaldırmak; karnı tamamen şişirmek; nefesi zorlamak.", "Sırtüstü dizler bükülü, eller kaburgada çalış.", "Oturarak ya da hareket içinde (Hundred, Chest lift) koru.", "Kaburgalar akordeon gibi yanlara açılsın, omuzlar yerinde kalsın.", "Baş dönmesi olursa nefesi yavaşlat. Herkese ve hamilelikte uygun."],
+  "Pelvic tilt (imprint)": ["Pelvisi kontrollü devirip nötral ile imprint arasındaki farkı öğrenmek.", "Rektus ve transversus abdominis, pelvik taban, kalça kasları.", "8-10 tekrar", "Nefes verirken pelvisi devir, nefes alırken nötrale dön.", "Kalçayı yerden kaldırmak; hareketi kalça kaslarıyla yapmak; nefesi tutmak.", "Hareketi küçük tut, elleri pelviste his için kullan.", "Imprint'i koruyarak bacakları table-top'a al.", "Pelvis bir kâse gibi; suyu göbeğe doğru dök, sonra düzelt.", "Bel ağrısında ağrısız açıklıkta kal. Hamilelikte ikinci trimesterden sonra sırtüstü süreyi kısa tut."],
+  "Pelvic curl": ["Omurgayı omur omur kaldırıp indirerek segmental hareket.", "Hamstringler, gluteus maximus, karın kasları, omurga ekstansörleri.", "6-8 tekrar", "Nefes al hazırlan, verirken kalk; tepede al, verirken omur omur in.", "Belden kavis yapıp kaburgaları açmak; dizlerin dışa açılması; boyna yük bindirmek.", "Yarım yükseklikte kal, sadece pelvisi kaldır.", "Tepede bir topuk kaldır ya da topu dizler arasında sık.", "Kuyruk sokumundan başla, inişte göğüs kemiğini önce bırak.", "Boyun sorunlarında tepede omuz kemiğinden yukarı çıkma. Hamilelikte uyarlanarak uygun."],
+  "Chest lift": ["Baş ve göğsü kaldırarak karın kasını kısaltmak.", "Rektus abdominis, obliklar, derin boyun fleksörleri.", "8-10 tekrar", "Nefes verirken kalk, tepede al, verirken in.", "Çeneyi göğse bastırmak; ellerle başı çekmek; belin yerden kalkması.", "Kısa yükselme ve aşağıda bir nefes dinlenme.", "Tepede 3 nefes kal ya da bacakları table-top'a al.", "Göğüs kemiğini dizlere değil, uyluklara doğru kaydır.", "Boyun ağrısında başı havlu ile destekle. Hamilelikte ve diastasiste önerilmez."],
+  "Dead bug": ["Karşı kol ve bacak hareketi sırasında gövdeyi sabit tutmak.", "Transversus abdominis, rektus abdominis, kalça fleksörleri.", "Her yöne 5-8 tekrar", "Uzatırken nefes ver, merkeze dönerken al.", "Belin kavis yapması; hızlı ve savrukça hareket; kaburgaların açılması.", "Sadece bacak ya da sadece kol uzat.", "Bacağı yere daha yakın indir ya da hafif ağırlık tut.", "Bel minderi hafifçe hissetsin, pelvis kıpırdamasın.", "Bel ağrısında hareket açıklığını küçült. Başlangıç için güvenli."],
+  "Toe taps": ["Bacak hareketi sırasında pelvis stabilitesi.", "Transversus abdominis, rektus abdominis, iliopsoas.", "Her bacak 6-10 tekrar", "İnerken nefes ver, kaldırırken al.", "Diz açısının açılması; belin yerden kalkması; ayakları hızla düşürmek.", "Tek bacakla ve kısa mesafeyle çalış.", "İki bacağı birlikte indir.", "Dizler 90 derece kilitli, sadece kalçadan menteşe gibi hareket et.", "Bel ağrısında ilk tercih. Hamilelikte ilk trimesterde uygun."],
+  "Supine spine twist": ["Gövdeyi sabit tutarken kontrollü rotasyon.", "Obliklar, transversus abdominis, kalça adduktörleri.", "Her yöne 4-6 tekrar", "Dizleri yana götürürken nefes ver, merkeze dönerken al.", "Karşı omzun yerden kalkması; dizlerin ayrılması; çok geniş açıklık.", "Ayaklar yerde, küçük açıklık.", "Bacaklar table-top'ta, dizler arasında top.", "Dizler birlikte, karşı kaburga yere ağır kalsın.", "Disk sorunlarında açıklığı küçük tut."],
+  "The Hundred": ["Nefes ve kol pompasıyla karın dayanıklılığı.", "Rektus ve transversus abdominis, derin boyun fleksörleri, kalça fleksörleri.", "10 set (100 pompa)", "5 pompa boyunca nefes al, 5 pompa boyunca ver.", "Boynun gerilmesi; belin kavis yapması; kolları dirsekten bükmek.", "Başı yerde tut ya da dizleri table-top'ta tut.", "Bacakları 45 dereceye ya da daha aşağı indir.", "Kollar uzun ve canlı, pompa küçük ve ritmik.", "Boyun ağrısı, diastasis ve hamilelikte başı yerde tutarak uyarla."],
+  "Roll Up": ["Omurgayı tek tek bükerek oturma ve geri yatma.", "Rektus abdominis, transversus abdominis, kalça fleksörleri.", "5-6 tekrar", "Nefes al kolları kaldır, verirken yuvarlan; geri giderken aynı.", "Momentumla fırlamak; bacakları yerden kaldırmak; omuzları kasmak.", "Dizleri bük ya da bacak arkasından tutarak yardım al.", "Yavaşlat ve her omurda dur.", "Göbeği omurgaya çek, C eğrisini koru.", "Osteoporozda ve disk fıtığında fleksiyon önerilmez."],
+  "Roll Down (half roll back)": ["Yarım geri yuvarlanmayla C eğrisi ve karın kontrolü.", "Rektus ve transversus abdominis, obliklar.", "6-8 tekrar", "Geri giderken nefes ver, dönerken al ya da tersi.", "Belden çökmek; omuzları öne kapatmak; ayakların kalkması.", "Bant ya da elle uyluk arkasından tut.", "Geride dur ve rotasyon ekle.", "Belini arkadaki duvara doğru uzat.", "Osteoporozda dikkatli ve küçük açıklıkla."],
+  "Single Leg Circle": ["Pelvis sabitken kalça ekleminin serbest hareketi.", "Kalça fleksörleri, adduktörler, abduktörler, karın kasları.", "Her yöne 5 daire", "Daire başında nefes al, bitirirken ver.", "Pelvisin sallanması; dairenin çok büyük olması; yerdeki bacağın gergin kalması.", "Yerdeki dizi bük, daireyi küçült.", "Daireyi büyüt, yerdeki bacağı uzat.", "Pelvis bir masa gibi; üstündeki bardaklar devrilmesin.", "Kalça protezinde açıklığı sınırlı tut."],
+  "Rolling Like a Ball": ["Top şeklini koruyarak geri-ileri yuvarlanma ve denge.", "Karın kasları, omurga ekstansörleri (masaj), kalça fleksörleri.", "6-8 tekrar", "Geri giderken nefes al, öne gelirken ver.", "Başı geri atmak; şekli açmak; boyun üstüne kadar gitmek.", "Bacak arkasından tutup küçük sallan.", "Ellerden destek almadan dengede kal.", "Göz dizlerde, top şekli bozulmasın; kürek kemiklerine kadar git.", "Osteoporoz ve boyun sorunlarında yapılmaz."],
+  "Single Leg Stretch": ["Bacak değiştirirken gövde stabilitesi ve koordinasyon.", "Rektus ve transversus abdominis, kalça fleksörleri.", "Her bacak 6-10 tekrar", "İki değişimde nefes al, iki değişimde ver.", "Gövdenin sallanması; belin kalkması; boyunda gerilme.", "Başı yerde tut, uzanan bacağı yüksek tut.", "Bacağı alçalt, tempoyu kontrollü artır.", "Göğüs kemiği yukarıda kalsın, sadece bacaklar değişsin.", "Boyun sorunlarında başı yerde tut. Hamilelikte uyarla."],
+  "Double Leg Stretch": ["Kol ve bacakları uzatıp merkeze dönerken gövdeyi sabit tutmak.", "Rektus ve transversus abdominis, kalça fleksörleri, omuz kasları.", "6-8 tekrar", "Uzanırken nefes al, merkeze sarılırken ver.", "Uzanırken başın düşmesi; belin kalkması; kolları kulak arkasına atmak.", "Kolları sadece öne uzat, bacakları yüksek tut.", "Bacakları daha aşağı indir, kolla daire çiz.", "Uzanırken gövde yerinden kıpırdamasın.", "Diastasiste ve boyun ağrısında uyarla."],
+  "Single Straight Leg (Scissors)": ["Düz bacaklarla makas hareketi ve arka bacak esnekliği.", "Karın kasları, hamstringler, kalça fleksörleri.", "Her bacak 6-8 tekrar", "İki çekişte nefes al, iki çekişte ver.", "Bacağı çekerken gövdeyi öne yığmak; omuzları kasmak; dizleri kilitlemek.", "Dizleri hafif bük, bacağın arkasından tut.", "Ellerini bırakıp kolları yanda tut.", "Bacaklar uzun, makas sesi çıkmayacak kadar kontrollü.", "Hamstring sakatlığında açıklığı küçült."],
+  "Double Straight Leg (Lower Lift)": ["İki bacağı birlikte indirip kaldırırken beli koruma.", "Rektus abdominis, transversus abdominis, kalça fleksörleri.", "6-8 tekrar", "İndirirken nefes al, kaldırırken ver.", "Belin yerden kalkması; bacakları çok aşağı indirmek; boyunda gerilme.", "Elleri sakrumun altına koy, açıklığı küçült.", "Bacakları beli bozmadan daha aşağı indir.", "Bel sabit kaldığı sürece in; bel kalkarsa dur.", "Bel ağrısı ve diastasiste önerilmez."],
+  "Criss Cross": ["Rotasyonla obliklara yoğunlaşan karın çalışması.", "İç ve dış obliklar, rektus abdominis.", "Her yöne 5-8 tekrar", "Dönerken nefes ver, merkezde al.", "Dirseği kapatıp boynu çekmek; sadece başı çevirmek; pelvisin sallanması.", "Ayaklar yerde ya da yavaş tempo.", "Dönüşte 3 sayı kal.", "Dirseği değil, kaburgayı karşı kalçaya getir.", "Osteoporozda fleksiyon+rotasyondan kaçın."],
+  "Spine Stretch Forward": ["Oturarak omurgayı öne yuvarlayıp uzatmak.", "Omurga ekstansörleri (esneme), hamstringler, karın kasları.", "4-6 tekrar", "Öne yuvarlanırken nefes ver, omur omur kalkarken al.", "Kalçadan öne eğilmek; omuzları kaldırmak; dizleri kilitlemek.", "Dizleri bük ya da bir yastığa otur.", "Ellerle minderde uzun kaydır.", "Arkadaki duvardan uzaklaşarak yuvarlan, karnı içe çek.", "Osteoporozda ve disk fıtığında açıklığı sınırla."],
+  "Open Leg Rocker": ["Açık bacaklarla V pozisyonunda denge ve yuvarlanma.", "Karın kasları, kalça fleksörleri, hamstringler.", "5-6 tekrar", "Geri giderken nefes al, öne gelirken ver.", "Şekli bozmak; başın geri gitmesi; momentumla yuvarlanmak.", "Önce dizler bükülü dengede kal.", "Tepede 2-3 nefes dengede dur.", "Bacak ve gövde arasındaki açı hiç değişmesin.", "Osteoporoz ve boyun sorunlarında yapılmaz."],
+  "Corkscrew": ["Bacaklarla daire çizerken gövdeyi sabit tutmak.", "Obliklar, rektus abdominis, kalça fleksörleri.", "Her yöne 3-5 tekrar", "Daireye başlarken nefes al, tamamlarken ver.", "Omuzların kalkması; daireyi belden yapmak; bacakları ayırmak.", "Küçük daire, pelvis yerde.", "Pelvisi kaldırarak tam corkscrew.", "Bacaklar birbirine yapışık, daireyi kalçadan çiz.", "Bel ağrısında küçük daireyle yap."],
+  "Saw": ["Oturarak rotasyon ve öne esneme.", "Obliklar, omurga ekstansörleri, hamstringler.", "Her yöne 3-5 tekrar", "Dönerken nefes al, testereyle uzanırken ver.", "Kalçanın yerden kalkması; omuzları kaldırmak; sadece kolla uzanmak.", "Dizleri bük, küçük uzan.", "Uzanma sırasında 3 küçük nabız.", "Kalçalar yere çakılı, serçe parmak ayağın dışını kessin.", "Osteoporozda fleksiyon+rotasyonu sınırla."],
+  "Swan prep": ["Yüzüstü göğsü kaldırarak omurga ekstansiyonu.", "Omurga ekstansörleri, gluteuslar, alt trapez, serratus.", "6-8 tekrar", "Kalkarken nefes al, inerken ver.", "Beli bükmek; boynu geriye atmak; omuzları kaldırmak.", "Sadece baş ve göğsün üstünü kaldır.", "Elleri yerden kaldırarak tut.", "Göğüs öne ve yukarı uzasın, karın yerden hafif kalksın.", "Spondilolistezis ve bel ağrısında açıklığı küçük tut. Hamilelikte yüzüstü yapılmaz."],
+  "Swan": ["Tam ekstansiyonla göğsü açmak ve sırtı güçlendirmek.", "Omurga ekstansörleri, gluteuslar, hamstringler, triseps.", "4-6 tekrar", "Kalkarken nefes al, inerken ver.", "Belden kırmak; kolları kilitlemek; omuzları kulağa kaldırmak.", "Swan prep ile kal.", "Swan rock ya da Swan dive'a geç.", "Uzun bir yay ol; baş tepeden çekiliyormuş gibi.", "Bel ağrısında önerilmez. Hamilelikte yapılmaz."],
+  "Single Leg Kick": ["Ön kol desteğinde ekstansiyonu korurken hamstring çalışması.", "Hamstringler, gluteuslar, omurga ekstansörleri, karın kasları.", "Her bacak 5-8 tekrar", "İki vuruşta nefes al, iki vuruşta ver.", "Göğsün çökmesi; belin bel kavisinin artması; omuzları kasmak.", "Ön kollar yerde, alın elin üstünde.", "Vuruş sırasında ön kollardan yukarı it.", "Karnı yerden kaldır, göğüs ileri uzasın.", "Diz sorunlarında vuruşu yumuşat. Hamilelikte yapılmaz."],
+  "Double Leg Kick": ["Ekstansiyonla göğsü açıp omuzları geri almak.", "Hamstringler, gluteuslar, omurga ekstansörleri, arka omuz.", "4-6 tekrar", "Vuruşlarda nefes ver, açılırken al.", "Dirseklerin yerde kalması; beli bükmek; başı geri atmak.", "Tek vuruş ve küçük açılış.", "Açılışta üst gövdeyi daha uzun tut.", "Eller sırtta, kollar uzayınca göğüs ileri açılsın.", "Bel ağrısında açıklığı küçült. Hamilelikte yapılmaz."],
+  "Neck Pull": ["Elleri ense arkasındayken roll up kontrolü.", "Rektus abdominis, omurga ekstansörleri, hamstringler.", "4-6 tekrar", "Kalkarken nefes ver, dik oturunca al, geri giderken ver.", "Ellerle başı çekmek; momentum; ayakların kalkması.", "Kolları öne uzat, dizleri bük.", "Geri inerken ekstansiyonla dik pozisyondan geç.", "Dirsekler geniş, boyun uzun; çekme işini karın yapar.", "Boyun ve disk sorunlarında yapılmaz."],
+  "Shoulder Bridge": ["Köprüde tek bacak hareketleriyle kalça ve pelvis stabilitesi.", "Gluteuslar, hamstringler, karın kasları, omurga ekstansörleri.", "Her bacak 3-5 tekrar", "Bacak kalkarken nefes al, inerken ver.", "Kalçanın düşmesi; pelvisin yana kayması; boyna yük vermek.", "Köprüde bekleyip sadece topuk kaldır.", "Bacakla tam tekmeler, uzun bacakla aşağı uzan.", "Pelvis iki yanda eşit yükseklikte kalsın.", "Boyun sorunlarında yük omuzlarda olsun."],
+  "Spine Twist": ["Dik otururken omurga rotasyonu.", "Obliklar, omurga ekstansörleri, multifidus.", "Her yöne 3-5 tekrar", "Dönerken nefes ver, merkeze dönerken al.", "Kalçanın kayması; arkaya yaslanmak; kollarla dönmek.", "Çapraz bacak otur ya da yastık kullan.", "Dönüşte iki küçük nabız ekle.", "Önce uzan, sonra dön; omurga bir vida gibi.", "Disk sorunlarında rotasyonu küçük tut."],
+  "Jackknife": ["Bacakları tavana göndererek tam karın kontrolü.", "Rektus abdominis, gluteuslar, triseps, omurga ekstansörleri.", "3-5 tekrar", "Yukarı çıkarken nefes ver, omur omur inerken al.", "Boyna yük vermek; momentum; inişi hızlı yapmak.", "Roll over ile kal.", "Tepede 2 nefes dur.", "Bacaklar tavana uzun bir ok; ağırlık omuz kuşağında.", "Boyun sorunları, osteoporoz, yüksek tansiyon ve hamilelikte yapılmaz."],
+  "Side Kick serisi": ["Yan yatarak gövdeyi sabit tutup kalça çalışmak.", "Gluteus medius ve maximus, adduktörler, obliklar, kuadratus lumborum.", "Her hareket 6-10 tekrar", "Öne vururken nefes al, geri götürürken ver.", "Gövdenin yuvarlanması; belden hareket; üst kalçanın geriye düşmesi.", "Alt dizi bük, başı kola koy.", "Dirsek üstünde yüksel ya da ağırlık ekle.", "Kalçalar üst üste; bacak hareket ederken kimse kıpırdamasın.", "Kalça protezinde açıklığı sınırla. Hamilelikte uygun."],
+  "Teaser": ["V pozisyonuna yuvarlanarak güç ve denge.", "Rektus abdominis, kalça fleksörleri, omurga ekstansörleri.", "3-5 tekrar", "Kalkarken nefes ver, tepede al, inerken ver.", "Momentum; göğsün çökmesi; omuzları kaldırmak.", "Ayaklar yerde ya da tek bacak teaser.", "Kollarla daire çiz ya da bacakları birlikte indir-kaldır.", "Kollar bacaklara paralel; göğüs açık ve yüksek.", "Bel ağrısı, osteoporoz ve hamilelikte yapılmaz."],
+  "Hip Twist": ["Destekte otururken bacaklarla daire ve gövde kontrolü.", "Karın kasları, obliklar, kalça fleksörleri, omuz kasları.", "Her yöne 3-5 tekrar", "Daire başında nefes al, bitirirken ver.", "Göğsün çökmesi; omuzların kalkması; daireyi büyütmek.", "Dirsek üstünde, küçük daire.", "Kollar düz, büyük daire.", "Göğüs açık kalsın, daireyi bacaklar değil karın çizsin.", "Omuz sorunlarında ve bel ağrısında yapılmaz."],
+  "Swimming": ["Yüzüstü karşı kol-bacak hareketiyle sırt ve koordinasyon.", "Omurga ekstansörleri, gluteuslar, hamstringler, arka omuz.", "20-30 vuruş", "5 vuruşta nefes al, 5 vuruşta ver.", "Belin aşırı bükülmesi; başı geri atmak; savrukça hareket.", "Dört ayak üstünde bird dog yap.", "Tempoyu artır, kollarla bacakları yüksek tut.", "Uzun ol, sonra yüz; hareket kısa ve hızlı ama gövde sabit.", "Bel ağrısında açıklığı küçült. Hamilelikte yapılmaz."],
+  "Leg Pull Front": ["Plank pozisyonunda bacak kaldırarak gövde stabilitesi.", "Karın kasları, gluteuslar, omuz stabilizatörleri, serratus.", "Her bacak 3-5 tekrar", "Bacak kalkarken nefes ver, inerken al.", "Kalçanın düşmesi ya da kalkması; omuzların çökmesi; pelvisin dönmesi.", "Plankta kal ya da dizler yerde.", "Topuktan geri-ileri ittirme ekle.", "Baştan topuğa tek çizgi; bacak kalkınca da çizgi bozulmasın.", "Bilek ve omuz sorunlarında ön kol üstünde yap."],
+  "Leg Pull Back": ["Ters plankta kalça ekstansiyonu ve omuz gücü.", "Hamstringler, gluteuslar, triseps, arka omuz, karın kasları.", "Her bacak 3-5 tekrar", "Bacak kalkarken nefes al, inerken ver.", "Kalçanın düşmesi; dirseklerin kilitlenmesi; başı geri atmak.", "Dizler bükülü masa pozisyonu.", "Tek bacakla kalça kaldırma.", "Kalça yüksek, göğüs açık, parmaklar ayağa dönük.", "Bilek ve omuz sorunlarında önerilmez."],
+  "Kneeling Side Kick": ["Diz ve tek el üstünde denge ile yan bacak çalışması.", "Gluteus medius, obliklar, omuz stabilizatörleri.", "Her yöne 4-6 tekrar", "Öne vururken nefes al, geri götürürken ver.", "Gövdenin çökmesi; destek omzuna yığılmak; belden kırmak.", "Bacağı kalça hizasında tut, küçük vuruş.", "Daha geniş açıklık ve daire.", "Bel tarafı uzun, destek omzu kulaktan uzak.", "Diz ve omuz sorunlarında uyarla."],
+  "Side Bend": ["Yan plankta yan esneme ve omuz gücü.", "Obliklar, kuadratus lumborum, omuz stabilizatörleri, adduktörler.", "Her yan 3-5 tekrar", "Kalkarken nefes ver, kemer yaparken al.", "Omza yığılmak; kalçanın geri düşmesi; boyun gerilmesi.", "Dizler bükülü yan plank (mermaid side bend).", "Kalkışta rotasyon ekle (twist).", "Kalçayı tavana kaldır, kaburgalar uzun bir kemer çizsin.", "Omuz ve bilek sorunlarında dikkatli."],
+  "Boomerang": ["Roll over, teaser ve denge geçişlerini akıcı birleştirmek.", "Karın kasları, kalça fleksörleri, omuz ekstansörleri.", "3-4 tekrar", "Roll over'da nefes ver, teaser'da al, inerken ver.", "Akışı bozup momentum kullanmak; boyna yük; bacakları ayırmak.", "Parçaları ayrı ayrı çalış.", "Kesintisiz, sayılı tempoyla akış.", "Tek bir akıcı nefeste kontrol; hiçbir parça düşmesin.", "Boyun, osteoporoz ve hamilelikte yapılmaz."],
+  "Seal": ["Topuk çırparak yuvarlanma ve oyunbaz kontrol.", "Karın kasları, adduktörler, omurga ekstansörleri (masaj).", "6-8 tekrar", "Geri giderken nefes al, öne gelirken ver.", "Boyna kadar yuvarlanmak; şekli açmak; dengeyi kaybetmek.", "Çırpmadan yuvarlan.", "Tepede ve önde 3'er çırpış.", "Ayaklar yakın, şekil topu gibi kapalı.", "Boyun sorunları ve osteoporozda yapılmaz."],
+  "Control Balance": ["Roll over pozisyonunda tek bacakla denge.", "Karın kasları, gluteuslar, hamstringler, omuz stabilizatörleri.", "Her bacak 3-4 tekrar", "Bacak değiştirirken nefes ver.", "Boyna ağırlık vermek; kalçanın düşmesi; momentum.", "Roll over ve tek bacak açılışını ayrı çalış.", "Bacak değişiminde makas hızını artır.", "Ağırlık omuz kuşağında, kalça omzun üstünde.", "Boyun sorunları, osteoporoz ve hamilelikte yapılmaz."],
+  "Roll Over": ["Bacakları baş üstüne taşıyıp omur omur inmek.", "Karın kasları, omurga ekstansörleri (esneme), hamstringler.", "3-5 tekrar", "Bacaklar giderken nefes ver, inerken al.", "Momentumla atılmak; boyna yük; inişi hızlı yapmak.", "Kalçayı küçük kaldır, kolları yere bastır.", "Bacaklar açık-kapalı varyasyon.", "Kolları yere bastır, omurgayı bir halı gibi aç-kapa.", "Boyun sorunları, osteoporoz ve hamilelikte yapılmaz."],
+  "Rocking": ["Yüzüstü ayak bileklerini tutarak ekstansiyonda sallanma.", "Omurga ekstansörleri, gluteuslar, hamstringler, göğüs (esneme).", "4-6 tekrar", "Öne sallanırken nefes ver, geri gelirken al.", "Belden kırmak; boynu geri atmak; momentumla savrulmak.", "Sadece yay pozisyonunda dur.", "Kesintisiz sallanma.", "Ayakları ellere it, yay şekli değişmesin.", "Bel ağrısı, omuz sorunları ve hamilelikte yapılmaz."],
+  "Swan Dive": ["Swan pozisyonundan kolları bırakıp sallanmak.", "Omurga ekstansörleri, gluteuslar, hamstringler.", "4-6 tekrar", "Öne sallanırken nefes ver, geri gelirken al.", "Şekli kaybetmek; beli kırmak; başı geri atmak.", "Swan ile kal.", "Kesintisiz dalgalanma.", "Uzun bir yay gibi; yayın şekli hiç değişmesin.", "Bel ağrısı ve hamilelikte yapılmaz."],
+  "Push Up (Pilates)": ["Roll down, plank yürüyüşü ve şınavı birleştirmek.", "Göğüs kasları, triseps, serratus, karın kasları.", "3-5 tekrar", "Şınavda inerken nefes al, kalkarken ver.", "Kalçanın sarkması; dirseklerin dışa açılması; başı düşürmek.", "Dizler yerde şınav ya da duvara karşı.", "Tek bacak kalkıkken şınav.", "Dirsekler kaburgaya yakın, gövde tek çizgi.", "Bilek ve omuz sorunlarında uyarla."],
+  "Mermaid (Mat)": ["Oturarak yan esneme.", "Obliklar, kuadratus lumborum, latissimus (esneme).", "Her yana 3-4 tekrar", "Esnerken nefes ver, dönerken al.", "Karşı kalçanın kalkması; öne eğilmek; omuzları kaldırmak.", "Çapraz bacak otur.", "Esnemenin sonunda rotasyon ekle.", "Önce yukarı uzan, sonra yana; kaburgalar yelpaze gibi açılsın.", "Diz sorunlarında Z oturuşu yerine bağdaş kur. Hamilelikte uygun."],
+  "Plank": ["Gövdeyi tek çizgide tutarak dayanıklılık.", "Transversus abdominis, rektus abdominis, omuz stabilizatörleri, gluteuslar.", "20-45 saniye, 2-3 set", "Düzenli nefes; nefes tutma.", "Kalçanın sarkması ya da yükselmesi; omuzların çökmesi; başın düşmesi.", "Dizler yerde ya da ön kol üstünde.", "Tek kol ya da tek bacak kaldır.", "Eller yeri itsin, kürek kemikleri geniş.", "Bilek sorunlarında ön kol üstünde. Hamilelikte uyarla."],
+  "Side plank": ["Yan zincir gücü ve omuz stabilitesi.", "Obliklar, kuadratus lumborum, gluteus medius, omuz stabilizatörleri.", "Her yan 15-30 saniye", "Düzenli nefes.", "Kalçanın düşmesi; omza yığılmak; gövdenin dönmesi.", "Alt diz yerde.", "Üst bacağı kaldır ya da kalça indir-kaldır.", "Kalça yukarı, gövde tek düz çizgi.", "Omuz sorunlarında dikkatli."],
+  "Clamshell": ["Yan yatarak kalça dış rotasyonu ve gluteus medius.", "Gluteus medius ve minimus, derin dış rotatorlar.", "Her yan 10-15 tekrar", "Açarken nefes ver, kapatırken al.", "Pelvisin geriye dönmesi; belden hareket; hızlı yapmak.", "Küçük açılış, bantsız.", "Diz üstüne bant ekle ya da ayakları kaldır.", "Üst kalça kemiği öne doğru kalsın, sadece diz açılsın.", "Kalça ağrısında ağrısız açıklıkta. Hamilelikte uygun."],
+  "Bird dog": ["Dört ayakta karşı kol-bacak uzatarak stabilite.", "Multifidus, omurga ekstansörleri, gluteuslar, karın kasları.", "Her yöne 6-8 tekrar", "Uzatırken nefes ver, dönerken al.", "Belin çökmesi; pelvisin dönmesi; başı kaldırmak.", "Sadece kol ya da sadece bacak.", "Dirsek-diz dokundurma ya da ağırlık ekle.", "Sırtında bir bardak su var, dökülmesin.", "Bilek sorunlarında yumruk üstünde. Hamilelikte uygun."],
+  "Cat-Cow": ["Omurgayı fleksiyon ve ekstansiyonda hareketlendirmek.", "Omurga ekstansörleri, karın kasları, omuz stabilizatörleri.", "6-8 tekrar", "Kediye yuvarlanırken nefes ver, ineğe açılırken al.", "Hareketi sadece boyundan yapmak; omuzları çökertmek; hızlı yapmak.", "Küçük açıklık.", "Omur omur dalga gibi yap.", "Kuyruk sokumundan başla, baş en son gelsin.", "Hamilelikte uygun, inek pozisyonunu abartma."],
+  "Child's pose": ["Sırt ve kalçayı dinlendiren esneme.", "Omurga ekstansörleri, latissimus, kalça (esneme).", "30-60 saniye", "Sırta, kaburgaların arkasına nefes al.", "Dizlerde zorlanmak; omuzları kasmak.", "Kalçanın altına yastık koy.", "Elleri yana yürüterek yan esneme ekle.", "Nefesi sırtına gönder, kaburgalar arkaya açılsın.", "Diz sorunlarında yastık kullan. Hamilelikte dizleri aç."],
+  "Standing roll down": ["Ayakta omur omur öne yuvarlanma ve kalkış.", "Omurga ekstansörleri, karın kasları, hamstringler.", "3-5 tekrar", "İnerken nefes ver, kalkarken al.", "Dizleri kilitlemek; kalçayı geriye atmak; başı kaldırarak kalkmak.", "Dizleri yumuşak tut, yarıya kadar in.", "Altta 3 nefes dur ve sallan.", "Sırtını duvardan omur omur soy.", "Osteoporoz ve yüksek tansiyonda yarıya kadar in."],
+  "Footwork": ["Ayak pozisyonlarıyla bacak hizası ve ısınma.", "Kuadriseps, hamstringler, gluteuslar, baldır kasları.", "Her pozisyon 8-10 tekrar", "İterken nefes ver, dönerken al ya da ritmik nefes.", "Dizleri kilitlemek; pelvisin kıpırdaması; arabanın çarparak dönmesi.", "Daha hafif yay, kısa açıklık.", "Tek bacak footwork.", "Bacakları uzat ama dizleri kilitleme; dönüşü yay direnci kontrol etsin.", "Diz ve ayak bileği sorunlarında yayı azalt. Hamilelikte başlığı yükselterek uygun."],
+  "Hundred (Reformer)": ["Kayış direnciyle Hundred.", "Rektus ve transversus abdominis, omuz ekstansörleri, kalça fleksörleri.", "100 pompa", "5 pompada nefes al, 5 pompada ver.", "Boynu germek; belin kalkması; kayış gevşekliği.", "Bacaklar table-top, baş yerde.", "Bacakları alçalt.", "Kayışları kalçaya doğru bastır, göğüs kemiği yukarı.", "Boyun ve diastasiste uyarla."],
+  "Feet in straps: Frog": ["Kayışta bacak itme ve adduktör kontrolü.", "Adduktörler, hamstringler, gluteuslar, karın kasları.", "8-10 tekrar", "Uzatırken nefes ver, bükerken al.", "Belin kalkması; dizlerin çok açılması; pelvisin sallanması.", "Bacakları daha yüksek uzat.", "Bacakları alçalt, yayı azalt (daha zor).", "Topuklar birbirine yapışık, iç bacak uzasın.", "Kalça sorunlarında açıklığı küçült."],
+  "Leg circles in straps": ["Kayışta kalça daireleri ve pelvis stabilitesi.", "Adduktörler, hamstringler, kalça fleksörleri, karın kasları.", "Her yöne 5-6 tekrar", "Daire başında nefes al, bitirirken ver.", "Pelvisin sallanması; daireyi çok büyütmek; belin kalkması.", "Küçük daire.", "Daireyi büyüt, alt noktayı alçalt.", "Daire kalçadan çizilsin, pelvis kıpırdamasın.", "Kalça protezinde açıklığı sınırla."],
+  "Feet in straps: Lowers": ["Düz bacakları indirip kaldırarak hamstring ve karın.", "Hamstringler, gluteuslar, karın kasları.", "8-10 tekrar", "İndirirken nefes al, kaldırırken ver.", "Belin kavis yapması; dizlerin bükülmesi; hızlı dönüş.", "Kısa açıklık.", "Daha aşağı in, yayı azalt.", "Bacaklar uzun, kayış hep gergin.", "Bel ağrısında açıklığı küçült."],
+  "Feet in straps: Openings": ["Kayışta bacakları açıp kapatarak iç bacak kontrolü.", "Adduktörler (eksantrik), gluteuslar, karın kasları.", "8-10 tekrar", "Açarken nefes al, kapatırken ver.", "Pelvisin sallanması; aşırı açılmak; dizleri kilitlemek.", "Küçük açılış.", "Açılıp kapanırken bacakları aşağı indir.", "İç bacak uzasın, kapanışta birbirine sarılsın.", "Kasık sakatlığında açıklığı küçült."],
+  "Bridging (Reformer)": ["Ayaklar barda köprü ve araba kontrolü.", "Gluteuslar, hamstringler, omurga ekstansörleri.", "6-8 tekrar", "Kalkarken nefes ver, inerken al.", "Arabanın kaçması; beli bükmek; boyna yük.", "Köprüde kal, arabayı hareket ettirme.", "Köprüdeyken arabayı it-çek ya da tek bacak.", "Kuyruk sokumundan başla, araba sabit kalsın.", "Boyun sorunlarında omuz kemiklerinden yukarı çıkma."],
+  "Arm series (supine)": ["Sırtüstü kayışla kol serisi ve omuz stabilitesi.", "Latissimus, triseps, göğüs kasları, karın kasları.", "Her hareket 6-10 tekrar", "Çekerken nefes ver, dönerken al.", "Kaburgaların açılması; omuzların kalkması; belin kavisi.", "Hafif yay, bacaklar table-top.", "Bacaklar 45 derecede, baş kalkık.", "Kollar uzun, kaburgalar yerde ağır kalsın.", "Omuz sorunlarında açıklığı küçült."],
+  "Coordination": ["Kol-bacak açılış kapanışıyla koordinasyon.", "Karın kasları, triseps, adduktörler, kalça fleksörleri.", "5-6 tekrar", "Açılırken nefes ver, kapanırken al.", "Gövdenin düşmesi; acele; kayışların gevşemesi.", "Bacak açılışını atla.", "Tempoyu sabitle, açılışta dur.", "Kollar ve bacaklar aynı anda uzar, gövde hiç inmez.", "Boyun sorunlarında başı yerde tut."],
+  "Short spine": ["Kayışta omurgayı bükerek bacak ve omurga artikülasyonu.", "Karın kasları, hamstringler, omurga (esneme), gluteuslar.", "4-6 tekrar", "Bacaklar yukarı giderken nefes ver, omur omur inerken al.", "Boyna yük; arabanın çarpması; momentum.", "Önce bacakları sadece 90 dereceye kaldır.", "Yavaşlat, inişte her omurda dur.", "Ağırlık omuzlarda değil, kürek kemiklerinde.", "Boyun, osteoporoz ve hamilelikte yapılmaz."],
+  "Long spine": ["Düz bacaklarla omurga artikülasyonu.", "Karın kasları, hamstringler, gluteuslar.", "3-5 tekrar", "Kalkarken nefes ver, inerken al.", "Momentum; boyna yük; bacakların açılması.", "Short spine ile kal.", "Daha yavaş ve daha uzun iniş.", "Bacaklar tavana uzun bir çizgi, iniş ilmek ilmek.", "Boyun, osteoporoz ve hamilelikte yapılmaz."],
+  "Rowing serisi": ["Oturarak kol serisi ve postür.", "Arka omuz, rotator manşet, triseps, omurga ekstansörleri.", "Her hareket 4-6 tekrar", "Çekerken nefes ver, dönerken al.", "Kamburlaşmak; omuzları kaldırmak; kollarla savurmak.", "Bağdaş otur, hafif yay.", "Yuvarlanma ve öne uzanma ekle.", "Omurga uzun, omuzlar kulaktan uzak.", "Omuz sakatlığında açıklığı küçült."],
+  "Chest expansion": ["Diz üstünde kolları geri çekerek postür.", "Latissimus, arka omuz, triseps, omurga ekstansörleri.", "4-6 tekrar", "Çekerken nefes al, başı çevir; dönerken ver.", "Arkaya yaslanmak; omuzları kaldırmak; kaburgaları açmak.", "Oturarak yap.", "Diz üstünde baş dönüşleriyle.", "Kalçadan başa uzun bir çizgi, göğüs açık.", "Diz sorunlarında oturarak yap."],
+  "Kneeling arm series": ["Diz üstünde kol hareketleriyle gövde stabilitesi.", "Omuz kasları, karın kasları, gluteuslar.", "Her hareket 6-8 tekrar", "Hareketi yaparken nefes ver.", "Belden kavis; öne-arkaya sallanmak; omuzları kasmak.", "Daha hafif yay ya da oturarak.", "Tek dizde çalış.", "Kalça ve karın sabit, sadece kollar hareket eder.", "Diz sorunlarında yastık ya da oturarak."],
+  "Long box: Pulling straps": ["Yüzüstü kayış çekerek sırt ekstansiyonu.", "Latissimus, omurga ekstansörleri, arka omuz, triseps.", "5-6 tekrar", "Çekerken nefes al, dönerken ver.", "Beli bükmek; başı geri atmak; omuzları kaldırmak.", "Göğüs kutuda kalsın, sadece kollar.", "T pozisyonunda çek.", "Göğüs öne uzarken kürek kemikleri cebe girsin.", "Bel ağrısında açıklığı küçült. Hamilelikte yapılmaz."],
+  "Long box: Backstroke": ["Kutu üstünde sırtüstü sırtüstü yüzme koordinasyonu.", "Karın kasları, kalça fleksörleri, omuz kasları.", "4-6 tekrar", "Açılırken nefes al, kapanırken ver.", "Gövdenin düşmesi; belin kalkması; acele.", "Bacaklar yüksek, küçük daire.", "Bacakları alçalt, daireyi büyüt.", "Göğüs kemiği yukarıda kalsın, daire kalçadan.", "Boyun sorunlarında yapılmaz."],
+  "Short Box: Round back": ["Kısa kutuda C eğrisiyle geri yuvarlanma.", "Rektus abdominis, obliklar, kalça fleksörleri.", "4-6 tekrar", "Geri giderken nefes ver, dönerken al.", "Belden çökmek; omuzların kapanması; ayak kayışını itmek.", "Kısa açıklık, elle kutuyu tut.", "Kollar uzanmış ya da baş üstünde.", "C eğrisi bozulmadan, göbeği içe çekerek geri git.", "Osteoporozda yapılmaz."],
+  "Short Box: Flat back": ["Düz sırtla geriye menteşelenme.", "Karın kasları, omurga ekstansörleri, kalça fleksörleri.", "4-6 tekrar", "Geri giderken nefes al, dönerken ver.", "Belin kavis yapması; kaburgaların açılması; çenenin kalkması.", "Kısa açıklık, kollar göğüste.", "Kollar baş üstünde.", "Tek düz tahta gibi kalçadan menteşelen.", "Bel ağrısında kısa açıklık."],
+  "Short Box: Twist": ["Kısa kutuda rotasyon ve uzanma.", "Obliklar, omurga ekstansörleri, karın kasları.", "Her yöne 3-4 tekrar", "Dönerken nefes al, uzanırken ver.", "Kalçanın kayması; omuzları kaldırmak; belden kırmak.", "Sadece dönüş, uzanma yok.", "Twist and reach tam hâli.", "Önce boy uzat, sonra dön.", "Disk sorunlarında rotasyonu küçült."],
+  "Short Box: Tree": ["Bacak üstünde yürüyerek uzanma ve ekstansiyon.", "Hamstringler (esneme), omurga ekstansörleri, karın kasları.", "3-4 tekrar", "Uzanırken nefes ver, kalkarken al.", "Bacağı germek için gövdeyi çökertmek; dengeyi kaybetmek.", "Dizi bük.", "Geride tam ekstansiyon ekle.", "Ellerinle bacağına tırman, omurga her seferinde uzasın.", "Hamstring sakatlığında yapılmaz."],
+  "Elephant": ["Ayakta arabayı iterek hamstring ve karın kontrolü.", "Karın kasları, hamstringler (esneme), omuz stabilizatörleri.", "6-8 tekrar", "İterken nefes ver, çekerken al.", "Belin çökmesi; dizleri bükmek; omuzlara yığılmak.", "Dizleri hafif bük, kısa açıklık.", "Tek bacak elephant.", "Kalçalar tavana, hareketi karın yapar.", "Yüksek tansiyonda baş aşağı süreyi kısa tut."],
+  "Long Stretch": ["Reformer üstünde plankta itme.", "Karın kasları, omuz stabilizatörleri, göğüs, triseps.", "4-6 tekrar", "İterken nefes al, çekerken ver.", "Kalçanın düşmesi; omuzların çökmesi; açıklığı aşmak.", "Dizler kutuda ya da küçük açıklık.", "Tek bacak long stretch.", "Plank çizgisi araba ile birlikte kayar, çizgi hiç bozulmaz.", "Bilek ve omuz sorunlarında yapılmaz."],
+  "Down Stretch": ["Diz üstünde ekstansiyonda araba itme.", "Omurga ekstansörleri, triseps, gluteuslar, karın kasları.", "4-6 tekrar", "İterken nefes al, çekerken ver.", "Beli kırmak; omuzları kaldırmak; kalça ile itmek.", "Küçük açıklık.", "Tam açıklık, göğüs açık.", "Uzun bir yay; hareket kalçadan ve karından.", "Bel ağrısında yapılmaz."],
+  "Up Stretch": ["Pike'tan plank'a geçerek omuz ve karın gücü.", "Karın kasları, omuz stabilizatörleri, triseps, serratus.", "4-6 tekrar", "İterken nefes al, pike'a dönerken ver.", "Omuzların ellerin önüne geçmemesi; belin çökmesi; momentum.", "Daha kısa açıklık.", "Up stretch 2 ve 3 varyasyonları.", "Karın kalçayı tavana çeksin.", "Bilek ve omuz sorunlarında yapılmaz."],
+  "Knee Stretches": ["Diz üstünde arabayı iterek karın ve kalça.", "Karın kasları, kalça ekstansörleri, kuadriseps, omuzlar.", "Her pozisyon 8-10 tekrar", "Ritmik nefes: 2 itişte al, 2 itişte ver.", "Gövdenin sallanması; omuzların çökmesi; belden itmek.", "Yuvarlak sırt ve yavaş tempo.", "Dizler kalkık (off) versiyon.", "Gövde heykel gibi sabit, sadece bacaklar hareket eder.", "Diz sorunlarında yastık kullan."],
+  "Stomach Massage": ["Oturarak footwork ile karın ve postür.", "Karın kasları, kuadriseps, baldır kasları, omurga ekstansörleri.", "Her pozisyon 6-10 tekrar", "İterken nefes ver, dönerken al.", "Omuzları kaldırmak; gövdeyi sallamak; ayakları gevşek tutmak.", "Round back ile kal.", "Kollar uzanmış ve twist versiyonu.", "Gövde sabit, hareket sadece bacaklardan.", "Diz ve kalça sorunlarında uyarla."],
+  "Running": ["Topuk inişleriyle baldır ve ayak gücü.", "Baldır kasları, kuadriseps, ayak kasları.", "20-30 değişim", "Düzenli nefes.", "Dizleri kilitlemek; pelvisin sallanması; ayak bileğinin dışa kaçması.", "Yavaş tempo.", "Tempoyu artır.", "Dizler hafif bükülü, topuk barın altına uzasın.", "Aşil sorunlarında yapılmaz."],
+  "Side-lying footwork": ["Yan yatarak tek bacak itme ve kalça stabilitesi.", "Gluteus medius, kuadriseps, hamstringler, obliklar.", "Her bacak 8-10 tekrar", "İterken nefes ver, dönerken al.", "Gövdenin dönmesi; üst kalçanın düşmesi; dizi kilitlemek.", "Daha ağır yay.", "Daha hafif yay ve yavaş tempo.", "Kalçalar üst üste, diz ve ayak tek çizgi.", "Hamilelikte uygun."],
+  "Mermaid (Reformer)": ["Araba yardımıyla yan esneme.", "Obliklar, latissimus, kuadratus lumborum (esneme).", "Her yana 3-4 tekrar", "Esnerken nefes ver, dönerken al.", "Karşı kalçanın kalkması; öne eğilmek; omuzları kaldırmak.", "Kısa açıklık.", "Rotasyon ekle.", "Yukarı uzan, sonra yana; kaburgalar açılsın.", "Hamilelikte uygun."],
+  "Eve's lunge": ["Ayakta lunge ile kalça fleksörü esnemesi.", "Kalça fleksörleri (esneme), kuadriseps, ön bacak gluteusu.", "Her bacak 3-5 tekrar", "İterken nefes ver, dönerken al.", "Beli bükmek; ön dizin içe düşmesi; dengeyi kaybetmek.", "Kısa açıklık.", "Kolları baş üstüne kaldır.", "Pelvis dik, kuyruk sokumu aşağı uzasın.", "Diz sorunlarında yastık kullan."],
+  "Side splits": ["Ayakta yana açılarak iç bacak kontrolü.", "Adduktörler, abduktörler, gluteus medius, karın kasları.", "6-8 tekrar", "Açılırken nefes al, kapanırken ver.", "Gövdenin yana kayması; dizleri kilitlemek; dengeyi kaybetmek.", "Çok kısa açıklık, eğitmen desteği.", "Kollarla daire ekle.", "Ağırlık iki ayakta eşit, gövde dimdik.", "Kasık sakatlığında yapılmaz. Hamilelikte yapılmaz."],
+  "Front splits": ["Öne-arkaya açılarak denge ve esneklik.", "Hamstringler, kalça fleksörleri, gluteuslar, kuadriseps.", "Her bacak 3-5 tekrar", "Açılırken nefes al, dönerken ver.", "Pelvisin dönmesi; dengeyi kaybetmek; aşırı açılmak.", "Kısa açıklık, el destekli.", "Kollar yukarıda tam açılış.", "Pelvis öne baksın, omurga dik.", "Kasık ve hamstring sakatlığında yapılmaz."],
+  "Semi-circle": ["Ayaklar barda omurga artikülasyonu ve ekstansiyon.", "Omurga ekstansörleri, gluteuslar, kuadriseps.", "Her yöne 3-4 tekrar", "İnerken nefes al, kalkarken ver.", "Boyna yük; arabanın kaçması; beli kırmak.", "Kısa açıklık.", "Tam daire.", "Omurga dalga gibi açılsın, omuzlar sabit.", "Boyun ve bel sorunlarında yapılmaz."],
+  "Tendon stretch": ["Bar üstünde denge ve karın gücü.", "Karın kasları, triseps, kalça fleksörleri, baldırlar.", "4-6 tekrar", "İterken nefes ver, dönerken al.", "Omuzlara yığılmak; kalçayı düşürmek; momentum.", "Eğitmen desteği, kısa açıklık.", "Tam pike.", "Karın kalçayı yukarı çeksin, ağırlık ellerin üstünde.", "Bilek sorunlarında yapılmaz."],
+  "Snake / Twist": ["Rotasyon ve ekstansiyonla ileri seviye akış.", "Obliklar, omuz stabilizatörleri, omurga ekstansörleri.", "Her yöne 2-3 tekrar", "İterken nefes al, dönerken ver.", "Omuzların çökmesi; dengeyi kaybetmek; belden kırmak.", "Sadece twist kısmı.", "Akıcı ve kesintisiz.", "Omuz kuşağı sağlam, kalça dalga gibi.", "Omuz ve bel sorunlarında yapılmaz."],
+  "Star": ["Yan plankta bacak kaldırarak ileri seviye stabilite.", "Obliklar, gluteus medius, omuz stabilizatörleri.", "Her yan 2-3 tekrar", "Bacak kalkarken nefes ver.", "Omza yığılmak; kalçayı düşürmek; gövdenin dönmesi.", "Side plank ile kal.", "Bacak daireleri ekle.", "Kalça yüksek, beden bir yıldız gibi açılsın.", "Omuz sorunlarında yapılmaz."],
+  "Roll down bar": ["Bar ile desteklenen omur omur geri yuvarlanma.", "Rektus abdominis, obliklar, latissimus.", "4-6 tekrar", "Geri giderken nefes ver, dönerken al.", "Barı kollarla çekmek; omuzları kaldırmak; belden çökmek.", "Daha ağır yay, kısa açıklık.", "Rotasyon ya da tek kol ekle.", "Yayın direnci seni destekler, işi karın yapar.", "Osteoporozda açıklığı küçült."],
+  "Leg springs: Circles": ["Yay direnciyle bacak daireleri.", "Adduktörler, hamstringler, kalça fleksörleri, karın kasları.", "Her yöne 5-6 tekrar", "Daire başında nefes al, bitirirken ver.", "Pelvisin sallanması; belin kalkması; yaya teslim olmak.", "Küçük daire.", "Daireyi büyüt, yayı hafiflet.", "Bacaklar uzun, pelvis yere ağır.", "Kalça protezinde açıklığı sınırla."],
+  "Leg springs: Walking": ["Yayda bacakla yürüme koordinasyonu.", "Hamstringler, gluteuslar, kalça fleksörleri.", "8-10 adım", "Düzenli nefes.", "Pelvisin dönmesi; adımları savurmak; belin kalkması.", "Kısa adımlar.", "Adımları uzat, yavaşlat.", "Yay hep gergin, adımlar kontrollü.", "Kasık sakatlığında küçük adım."],
+  "Arm springs": ["Sırtüstü yay direnciyle kol serisi.", "Latissimus, triseps, göğüs kasları, karın kasları.", "Her hareket 6-8 tekrar", "Aşağı basarken nefes ver, dönerken al.", "Kaburgaların açılması; omuzların kalkması; dirsekleri bükmek.", "Hafif yay, dizler bükülü.", "Bacaklar table-top.", "Kollar uzun, omuzlar kulaktan uzak.", "Omuz sorunlarında açıklığı küçült."],
+  "Push through (seated)": ["Oturarak barı iterek omurga esnemesi.", "Omurga ekstansörleri, latissimus, hamstringler (esneme).", "4-6 tekrar", "Öne uzanırken nefes ver, kalkarken al.", "Omuzları kaldırmak; dizleri kilitlemek; barla savrulmak.", "Dizleri bük.", "Geri yuvarlanma ekle.", "Barı ileri iterken omurga yuvarlak ve uzun.", "Osteoporozda fleksiyonu sınırla."],
+  "Tower": ["Ayaklar barda omurga artikülasyonu.", "Hamstringler, gluteuslar, karın kasları.", "4-6 tekrar", "Uzatırken nefes ver, bükerken al.", "Boyna yük; belin kavis yapması; barı kaçırmak.", "Bacakla sadece itme, kalça yerde.", "Kalça kaldırarak tam tower.", "Bacaklar uzarken omurga yere uzun yatsın.", "Boyun sorunlarında yapılmaz."],
+  "Cat stretch": ["Diz üstünde barı iterek fleksiyon-ekstansiyon.", "Omurga ekstansörleri, karın kasları, latissimus.", "4-6 tekrar", "Yuvarlanırken nefes ver, uzanırken al.", "Omuzlara yığılmak; beli kırmak; hızlı yapmak.", "Kısa açıklık.", "Tam ekstansiyon ile dalga.", "Önce karın içe, sonra göğüs öne.", "Diz sorunlarında yastık kullan."],
+  "Monkey": ["Bar üstünde ayakla hamstring esnemesi.", "Hamstringler (esneme), omurga ekstansörleri, kollar.", "4-6 tekrar", "Esnerken nefes ver, dönerken al.", "Omuzları kaldırmak; dizleri zorlamak.", "Dizleri bük.", "Bacakları uzat, uzun dur.", "Kalça barın altına yuvarlansın.", "Hamstring sakatlığında açıklığı küçült."],
+  "Breathing": ["Askıda tersine dönerek nefes ve güç.", "Karın kasları, gluteuslar, omuz stabilizatörleri.", "3-4 tekrar", "Pompayla nefes al ve ver.", "Boyna yük; momentum; kalçanın düşmesi.", "Eğitmen desteği.", "Tam açıklık.", "Kalça tavana, ağırlık omuzlarda.", "Boyun sorunları, yüksek tansiyon, glokom ve hamilelikte yapılmaz."],
+  "Footwork (Chair)": ["Pedala basarak bacak hizası ve güç.", "Kuadriseps, hamstringler, gluteuslar, baldır kasları.", "Her pozisyon 8-10 tekrar", "Basarken nefes ver, dönerken al.", "Kamburlaşmak; dizleri içe düşürmek; pedalı çarptırmak.", "Daha ağır yay.", "Tek bacak.", "Uzun omurga, dizler ikinci parmağın üstünde.", "Diz sorunlarında açıklığı küçült."],
+  "Pumping one leg": ["Tek bacakla pedal pompası ve pelvis stabilitesi.", "Kuadriseps, gluteuslar, baldırlar, karın kasları.", "Her bacak 8-10 tekrar", "Basarken nefes ver.", "Pelvisin düşmesi; gövdenin yan yatması.", "Ağır yay, iki bacak.", "Ayakta pumping.", "Pelvis seviyede, gövde dimdik.", "Diz sorunlarında uyarla."],
+  "Mountain climb": ["Chair üstüne basarak tek bacak gücü ve denge.", "Gluteuslar, kuadriseps, hamstringler, karın kasları.", "Her bacak 4-6 tekrar", "Kalkarken nefes ver, inerken al.", "Dizin içe düşmesi; öne eğilmek; momentum.", "El desteği ile.", "Kollar baş üstünde.", "Ağırlık topukta, merdiven çıkar gibi.", "Diz sorunlarında dikkatli."],
+  "Swan (Chair)": ["Pedalla desteklenen sırt ekstansiyonu.", "Omurga ekstansörleri, gluteuslar, omuz stabilizatörleri.", "4-6 tekrar", "Kalkarken nefes al, inerken ver.", "Beli kırmak; omuzları kaldırmak.", "Kısa açıklık.", "Tek kol.", "Göğüs öne uzansın, pedal yolu göstersin.", "Bel ağrısında açıklığı küçült. Hamilelikte yapılmaz."],
+  "Spine stretch (Chair)": ["Oturarak pedalı iterek omurga fleksiyonu.", "Karın kasları, omurga ekstansörleri (esneme).", "4-6 tekrar", "İterken nefes ver, kalkarken al.", "Omuzları kaldırmak; kalçadan eğilmek.", "Ağır yay.", "Yayı hafiflet.", "C eğrisi, karın içe.", "Osteoporozda yapılmaz."],
+  "Pike (Chair)": ["Ellerle pedalı basarak pike pozisyonu.", "Karın kasları, omuz stabilizatörleri, triseps.", "3-5 tekrar", "Kalkarken nefes ver.", "Omuz çökmesi; momentum.", "Eğitmen desteği.", "Tam pike.", "Karın kalçayı tavana çeksin.", "Bilek ve omuz sorunlarında yapılmaz."],
+  "Tricep press (Dips)": ["Pedala basarak triseps gücü.", "Triseps, göğüs kasları, omuz stabilizatörleri.", "6-8 tekrar", "Basarken nefes ver.", "Omuzları kaldırmak; dirsekleri açmak.", "Ağır yay.", "Hafif yay, yavaş.", "Dirsekler geriye, omuzlar aşağı.", "Omuz sorunlarında yapılmaz."],
+  "Washer woman": ["Öne eğilerek pedalı basma ve karın.", "Karın kasları, omurga ekstansörleri, hamstringler.", "4-6 tekrar", "Basarken nefes ver.", "Dizleri kilitlemek; boynu gevşek bırakmak.", "Kısa açıklık.", "Tam açıklık.", "Karın içe, sırt yuvarlak.", "Yüksek tansiyonda yapılmaz."],
+  "Teaser (Chair)": ["Chair üstünde teaser ile denge.", "Karın kasları, kalça fleksörleri.", "3-4 tekrar", "Kalkarken nefes ver.", "Momentum; göğsün çökmesi.", "Ayak destekli.", "Tam teaser.", "Göğüs açık, kollar bacaklara paralel.", "Bel ağrısında yapılmaz."],
+  "Side bend (Chair)": ["Yan oturarak yan esneme ve oblik gücü.", "Obliklar, kuadratus lumborum, latissimus.", "Her yana 3-4 tekrar", "Esnerken nefes ver.", "Öne-arkaya kaymak; omuzları kaldırmak.", "Kısa açıklık.", "Kol baş üstünde.", "Yukarı uzan, sonra yana bük.", "Bel ağrısında dikkatli."],
+  "Ladder barrel: Swan": ["Barrel üstünde sırt ekstansiyonu.", "Omurga ekstansörleri, gluteuslar, hamstringler.", "4-6 tekrar", "Kalkarken nefes al.", "Beli kırmak; başı geri atmak.", "Kısa açıklık.", "Kollar uzanmış.", "Uzun bir yay, göğüs öne.", "Bel ağrısı ve hamilelikte yapılmaz."],
+  "Ladder barrel: Short box": ["Barrel üstünde short box serisi.", "Karın kasları, obliklar, kalça fleksörleri.", "Her hareket 3-5 tekrar", "Geri giderken nefes ver.", "Belden çökmek; momentum.", "Kısa açıklık.", "Kollar baş üstünde.", "C eğrisi bozulmasın.", "Osteoporozda yapılmaz."],
+  "Ladder barrel: Side sit-ups": ["Yan yatarak oblik gücü.", "Obliklar, kuadratus lumborum.", "Her yana 4-6 tekrar", "Kalkarken nefes ver.", "Öne-arkaya dönmek; boynu çekmek.", "Kısa açıklık.", "Kollar baş üstünde.", "Yan zincir uzun bir kemer çizsin.", "Bel ağrısında dikkatli."],
+  "Ladder barrel: Horseback": ["Barrel üstünde ata biner gibi güç ve denge.", "Adduktörler, karın kasları, gluteuslar.", "3-4 tekrar", "Kalkarken nefes ver.", "Dengeyi kaybetmek; momentum.", "Eğitmen desteği.", "Tam horseback.", "Bacaklar barrel'ı sarsın, gövde dik.", "Kasık sakatlığında yapılmaz."],
+  "Spine corrector: Arm series": ["Spine corrector üstünde kol serisi ve göğüs açma.", "Göğüs kasları, latissimus, omuz kasları.", "Her hareket 6-8 tekrar", "Kollar açılırken nefes al, kapanırken ver.", "Kaburgaların açılması; boynu germek.", "Hafif ağırlık ya da ağırlıksız.", "Ağırlık ekle.", "Göğüs açık, boyun uzun.", "Omuz sorunlarında açıklığı küçült."],
+  "Spine corrector: Leg series": ["Spine corrector üstünde bacak serisi.", "Karın kasları, kalça fleksörleri, adduktörler.", "Her hareket 5-8 tekrar", "Bacak uzarken nefes ver.", "Belin kalkması; momentum.", "Dizler bükülü.", "Düz bacaklar, alçak.", "Pelvis sabit, bacaklar uzun.", "Bel ağrısında yapılmaz."],
+  "Spine corrector: Hip opener": ["Kalçayı açan esneme.", "Kalça fleksörleri, adduktörler (esneme).", "Her yana 30-45 saniye", "Esnemeye nefes ver.", "Zorlamak; beli bükmek.", "Kısa açıklık.", "Rotasyon ekle.", "Nefesle açıl, zorlamadan.", "Kalça protezinde dikkatli."],
+  "Spine corrector: Teaser": ["Spine corrector desteğiyle teaser.", "Karın kasları, kalça fleksörleri.", "3-5 tekrar", "Kalkarken nefes ver.", "Momentum; göğsün çökmesi.", "Dizler bükülü.", "Tam teaser.", "Göğüs açık, denge oturma kemiklerinde.", "Bel ağrısında yapılmaz."],
+  "Magic circle: Inner thigh squeeze": ["Halkayı sıkarak iç bacak ve pelvik taban.", "Adduktörler, pelvik taban, transversus abdominis.", "10-15 tekrar", "Sıkarken nefes ver.", "Kalçayla sıkmak; nefesi tutmak.", "Hafif sık.", "Köprüde sık.", "İç bacaklarla sıkıştır, karın içe.", "Hamilelikte uygun."],
+  "Magic circle: Chest press": ["Halkayı sıkarak göğüs ve kol çalışması.", "Göğüs kasları, ön omuz, serratus.", "10-12 tekrar", "Sıkarken nefes ver.", "Omuzları kaldırmak; dirsekleri düşürmek.", "Hafif sıkma.", "Yukarı-aşağı pozisyonlarla.", "Omuzlar aşağı, sadece avuçlar sıksın.", "Omuz sorunlarında hafif sık."],
+  "Magic circle: Side-lying leg press": ["Yan yatarak halkayı bastırarak dış kalça.", "Gluteus medius, abduktörler.", "10-12 tekrar", "Bastırırken nefes ver.", "Gövdenin dönmesi; belden hareket.", "Kısa açıklık.", "Halkayı yüksekte tut.", "Kalçalar üst üste, bacak uzun.", "Hamilelikte uygun."],
+  "Magic circle: Overhead press": ["Baş üstünde halkayı sıkarak omuz ve postür.", "Omuz kasları, serratus, karın kasları.", "8-10 tekrar", "Sıkarken nefes ver.", "Kaburgaları açmak; omuzları kaldırmak.", "Göğüs hizasında sık.", "Baş üstünde tut.", "Kaburgalar aşağı, kollar uzun.", "Omuz sorunlarında açıklığı küçült."],
+  "Small ball: Pelvic curl": ["Top üstünde köprü ile stabilite.", "Gluteuslar, hamstringler, karın kasları.", "6-8 tekrar", "Kalkarken nefes ver.", "Topun kayması; beli bükmek.", "Top dizler arasında.", "Ayaklar topun üstünde.", "Pelvis seviyede, top sabit.", "Hamilelikte uyarla."],
+  "Small ball: Supported hundred": ["Top destekli Hundred ile boyunu korumak.", "Karın kasları, derin boyun fleksörleri.", "100 pompa", "5 pompada al, 5 pompada ver.", "Topa yığılmak; omuzları kaldırmak.", "Bacaklar table-top.", "Bacakları alçalt.", "Top başını desteklesin, karın işi yapsın.", "Boyun sorunlarında tercih edilir."]
+};
+// Body regions and risk marks for each built-in move, "regions|marks".
+// Regions: k karın, c kalça, s sırt, o omuz-kol, b bacak, e esneme.
+// Marks: S sırtüstü, P yüzüstü, F belirgin omurga fleksiyonu, f omur omur artikülasyon, H baş-göğüs kaldırma,
+// R omurga rotasyonu, X derin ekstansiyon, I ters dönüş, L omurga üstünde yuvarlanma, W bileğe yük,
+// B denge/düşme riski, K uzun kaldıraç (düz bacaklar alçakta), E yana bükülme, D yüksek karın içi basıncı (plank türü),
+// M momentumlu/sarsıntılı hareket.
+const LIB_TAGS = {
+  "Lateral nefes": "k|",
+  "Pelvic tilt (imprint)": "k|S",
+  "Pelvic curl": "cb|Sf",
+  "Chest lift": "k|SHF",
+  "Dead bug": "k|S",
+  "Toe taps": "k|S",
+  "Supine spine twist": "ke|SR",
+  "The Hundred": "k|SHFK",
+  "Roll Up": "k|SHF",
+  "Roll Down (half roll back)": "k|F",
+  "Single Leg Circle": "kcb|S",
+  "Rolling Like a Ball": "k|FLM",
+  "Single Leg Stretch": "k|SHF",
+  "Double Leg Stretch": "k|SHFK",
+  "Single Straight Leg (Scissors)": "kbe|SHFK",
+  "Double Straight Leg (Lower Lift)": "k|SHFK",
+  "Criss Cross": "k|SHFR",
+  "Spine Stretch Forward": "se|F",
+  "Open Leg Rocker": "ke|FLBM",
+  "Corkscrew": "k|SKR",
+  "Saw": "ke|FR",
+  "Swan prep": "s|P",
+  "Swan": "sc|PXW",
+  "Single Leg Kick": "bs|P",
+  "Double Leg Kick": "sbo|PX",
+  "Neck Pull": "ks|SHF",
+  "Shoulder Bridge": "cb|S",
+  "Spine Twist": "ks|R",
+  "Jackknife": "k|SIF",
+  "Side Kick serisi": "cb|",
+  "Teaser": "k|SFKBH",
+  "Hip Twist": "k|KRW",
+  "Swimming": "sc|P",
+  "Leg Pull Front": "ko|WD",
+  "Leg Pull Back": "cbo|WD",
+  "Kneeling Side Kick": "ck|WB",
+  "Side Bend": "ko|WED",
+  "Boomerang": "k|SFLIKM",
+  "Seal": "k|FLM",
+  "Control Balance": "kc|SIF",
+  "Roll Over": "ke|SIF",
+  "Rocking": "se|PXM",
+  "Swan Dive": "s|PXM",
+  "Push Up (Pilates)": "ok|WFD",
+  "Mermaid (Mat)": "e|E",
+  "Plank": "ko|WD",
+  "Side plank": "ko|WD",
+  "Clamshell": "c|",
+  "Bird dog": "sck|W",
+  "Cat-Cow": "se|Wf",
+  "Child's pose": "e|f",
+  "Standing roll down": "se|F",
+  "Footwork": "bc|S",
+  "Hundred (Reformer)": "k|SHFK",
+  "Feet in straps: Frog": "bc|S",
+  "Leg circles in straps": "cb|S",
+  "Feet in straps: Lowers": "bc|SK",
+  "Feet in straps: Openings": "b|S",
+  "Bridging (Reformer)": "cb|Sf",
+  "Arm series (supine)": "o|S",
+  "Coordination": "ko|SHF",
+  "Short spine": "ke|SIF",
+  "Long spine": "k|SIF",
+  "Rowing serisi": "os|F",
+  "Chest expansion": "os|B",
+  "Kneeling arm series": "ok|B",
+  "Long box: Pulling straps": "so|P",
+  "Long box: Backstroke": "k|SHFK",
+  "Short Box: Round back": "k|F",
+  "Short Box: Flat back": "k|K",
+  "Short Box: Twist": "k|R",
+  "Short Box: Tree": "bes|FX",
+  "Elephant": "ke|WI",
+  "Long Stretch": "ko|WD",
+  "Down Stretch": "so|WX",
+  "Up Stretch": "ko|WID",
+  "Knee Stretches": "kc|WF",
+  "Stomach Massage": "bk|F",
+  "Running": "b|S",
+  "Side-lying footwork": "bc|",
+  "Mermaid (Reformer)": "e|E",
+  "Eve's lunge": "eb|B",
+  "Side splits": "bc|B",
+  "Front splits": "be|B",
+  "Semi-circle": "sb|SXf",
+  "Tendon stretch": "ko|WBFD",
+  "Snake / Twist": "ko|WRBDX",
+  "Star": "ko|WBD",
+  "Roll down bar": "k|F",
+  "Leg springs: Circles": "cb|S",
+  "Leg springs: Walking": "bc|S",
+  "Arm springs": "o|S",
+  "Push through (seated)": "es|F",
+  "Tower": "be|SIF",
+  "Cat stretch": "se|FX",
+  "Monkey": "eb|F",
+  "Breathing": "k|IF",
+  "Footwork (Chair)": "b|",
+  "Pumping one leg": "bc|B",
+  "Mountain climb": "cb|B",
+  "Swan (Chair)": "s|PX",
+  "Spine stretch (Chair)": "se|F",
+  "Pike (Chair)": "ko|WIBD",
+  "Tricep press (Dips)": "o|W",
+  "Washer woman": "ke|FI",
+  "Teaser (Chair)": "k|FKB",
+  "Side bend (Chair)": "ke|E",
+  "Ladder barrel: Swan": "s|PX",
+  "Ladder barrel: Short box": "k|F",
+  "Ladder barrel: Side sit-ups": "k|ED",
+  "Ladder barrel: Horseback": "kb|B",
+  "Spine corrector: Arm series": "oe|S",
+  "Spine corrector: Leg series": "kb|SK",
+  "Spine corrector: Hip opener": "ec|S",
+  "Spine corrector: Teaser": "k|FKH",
+  "Magic circle: Inner thigh squeeze": "bk|S",
+  "Magic circle: Chest press": "o|S",
+  "Magic circle: Side-lying leg press": "c|",
+  "Magic circle: Overhead press": "o|S",
+  "Small ball: Pelvic curl": "cb|Sf",
+  "Small ball: Supported hundred": "k|SHF"
+};
+// A health filter only HIDES moves carrying marks that common Pilates guidance advises avoiding for that
+// condition; what remains is not certified safe. Kept deliberately cautious.
+const HEALTH = [
+  ["hamile", "Hamilelik (2. trimesterden itibaren)", "SPFHILXRBKDM"],
+  ["osteo", "Osteoporoz", "FfHILREBM"],
+  ["boyun", "Boyun hassasiyeti", "HILXM"],
+  ["bel", "Bel hassasiyeti", "FILXKM"],
+  ["bilek", "Bilek hassasiyeti", "W"],
+];
+const REGIONS = [["k", "Karın"], ["c", "Kalça"], ["s", "Sırt"], ["o", "Omuz-kol"], ["b", "Bacak"], ["e", "Esneme"]];
 const LIB = [
   ["Lateral nefes","Mat","Başlangıç","Eller kaburgaların yanında. Burundan alınan nefesle kaburgalar yanlara ve arkaya açılır, ağızdan verirken karın içe ve yukarı çekilir."],
   ["Pelvic tilt (imprint)","Mat","Başlangıç","Sırtüstü, dizler bükülü. Nefes verirken pelvisi hafifçe devirip beli mindere yaklaştır, nefes alırken nötrale dön."],
@@ -555,7 +850,7 @@ const LIB = [
   ["Magic circle: Overhead press","Ring & top","Başlangıç","Ayakta ya da oturarak halka başın üzerinde. Sıkıp bırak, omuzlar aşağıda."],
   ["Small ball: Pelvic curl","Ring & top","Başlangıç","Küçük top dizler arasında. Topu sıkarken pelvic curl yap."],
   ["Small ball: Supported hundred","Ring & top","Başlangıç","Top kürek kemiklerinin arkasında. Hundred'ı top desteğiyle yap."],
-].map(([name, equip, level, desc]) => ({name, equip, level, desc}));
+].map(([name, equip, level, desc]) => { const [rg, mk] = (LIB_TAGS[name] || "|").split("|"); return {name, equip, level, desc, info: LIB_INFO[name], rg, mk}; });
 
 // ---------- dates ----------
 const pad = n => String(n).padStart(2,"0");
@@ -584,7 +879,7 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt
 const low = s => String(s||"").toLocaleLowerCase("tr");
 
 const blankManita = () => ({name:"", nick:"", birth:"", together:"", phone:"", favs:{}, gifts:[], days:[], notes:[], evals:[]});
-const blank = () => ({events:[], tasks:[], students:[], programs:[], water:{}, cycles:[], customMoves:[], manita:blankManita()});
+const blank = () => ({events:[], tasks:[], students:[], programs:[], water:{}, cycles:[], customMoves:[], favMoves:{}, manita:blankManita()});
 // ---------- state & storage ----------
 const LS = "coco.v1", OLD_LS = "koko.v1";
 let state = null, persisted = false;
@@ -977,7 +1272,7 @@ function specialRow(x, date){
 
 // ---------- UI state ----------
 let stuMode = "ogrenci", tab = "bugun", calMode = "ay", selDay = today(), monthCursor = today().slice(0,7), weekStart = mondayOf(today());
-let mvEq = "Tümü", mvQ = "";
+let mvEq = "Tümü", mvQ = "", mvLv = "", mvRg = "", mvFav = false, mvHealth = [], mvMore = false;
 const TABS = ["bugun","takvim","gorevler","ogrenciler","manitam"];
 try { const t = localStorage.getItem("coco.tab") || localStorage.getItem("koko.tab"); if (TABS.includes(t)) tab = t; const cm = localStorage.getItem("coco.cal") || localStorage.getItem("koko.cal"); if (cm) calMode = cm; } catch {}
 if (TABS.includes(location.hash.slice(1))) tab = location.hash.slice(1);
@@ -998,10 +1293,53 @@ function render(){
   bs.innerHTML = !sync.key && standalone ? `<div class="banner"><span class="grow"><b>Ana ekrandaki COCO henüz ortak kayda bağlı değil.</b> iPhone ana ekran uygulamasına ayrı hafıza veriyor. Kurulum linkini kopyalayıp buraya yapıştır, kayıtların gelsin.</span>
       <form id="pairForm" class="inline" style="flex:1 1 100%"><input class="input" id="pair-text" placeholder="Kurulum linkini yapıştır" aria-label="Kurulum linki" autocomplete="off" autocapitalize="off" spellcheck="false" required><button class="btn">Bağla</button></form></div>`
     : pushOffer() ? `<div class="banner"><span class="grow"><b>Bildirimler açılsın mı?</b> Sabah özeti, ders ve sınav hatırlatmaları telefonuna gelsin. Neyin geleceğini zil simgesinden seçebilirsin.</span><button class="btn sm" data-act="push-on">Bildirimleri aç</button><button class="btn sm ghost" data-act="push-later">Şimdi değil</button></div>`
-    : fresh && tab === "bugun" ? `<div class="banner"><span class="grow"><b>COCO'ya hoş geldin!</b> Sağ alttaki + ile ilk dersini, pilates seansını ya da ödevini ekle. Öğrencilerini “Öğrenciler” sekmesinden, döngünü aşağıdaki regl kartından girebilirsin. Kayıtların bu cihazda saklanır.</span></div>`
+    : fresh && tab === "bugun" ? `<div class="banner"><span class="grow"><b>COCO'ya hoş geldin!</b> Sağ alttaki + ile ilk dersini, pilates seansını ya da ödevini ekle. Öğrencilerini “Pilates” sekmesinden, döngünü aşağıdaki regl kartından girebilirsin. Kayıtların bu cihazda saklanır.</span></div>`
     : backupDue() ? `<div class="banner"><span class="grow"><b>Yedek alma zamanı.</b> Kayıtların sadece bu cihazda duruyor${lsRead(BK) ? `, son yedek ${fmtShort(lsRead(BK))}` : " ve henüz yedek almadın"}. Telefon değişir ya da tarayıcı temizlenirse kaybolmasın.</span><button class="btn sm" data-act="backup">Yedek al</button><button class="btn sm ghost" data-act="snooze">Sonra</button></div>` : "";
   ({bugun:renderToday, takvim:renderCal, gorevler:renderTasks, ogrenciler:renderStudents, manitam:renderManita})[tab]();
 }
+
+// Rows slide left to show their actions underneath, like iPhone lists. Tapping a row still opens it.
+const swipeRow = (row, acts) => `<div class="swipe"><div class="acts">${acts}</div><div class="front">${row}</div></div>`;
+let swOpen = null, swDrag = null, swEat = false;
+function swSet(el, x, open){
+  el.querySelector(".front").style.transform = x ? `translateX(${x}px)` : "";
+  el.classList.toggle("open", !!open);
+  if (open) swOpen = el; else if (swOpen === el) swOpen = null;
+}
+document.addEventListener("pointerdown", ev => {
+  const el = ev.target.closest(".swipe");
+  if (swOpen && swOpen !== el) swSet(swOpen, 0, false);
+  if (!el || ev.target.closest(".acts")) return;
+  swDrag = {el, x0: ev.clientX, y0: ev.clientY, base: el.classList.contains("open") ? -el.querySelector(".acts").offsetWidth : 0, on: false, x: 0, id: ev.pointerId};
+});
+document.addEventListener("pointermove", ev => {
+  const s = swDrag; if (!s || ev.pointerId !== s.id) return;
+  const dx = ev.clientX - s.x0, dy = ev.clientY - s.y0;
+  if (!s.on) {
+    if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) { swDrag = null; return; }   // scrolling the page
+    if (Math.abs(dx) < 10) return;
+    s.on = true; s.el.classList.add("drag");
+    try { s.el.setPointerCapture(ev.pointerId); } catch {}
+  }
+  const w = s.el.querySelector(".acts").offsetWidth;
+  s.x = Math.max(-w - 24, Math.min(0, s.base + dx));
+  s.el.querySelector(".front").style.transform = `translateX(${s.x}px)`;
+});
+const swEnd = ev => {
+  const s = swDrag; swDrag = null; if (!s || ev.pointerId !== s.id) return;
+  s.el.classList.remove("drag");
+  if (!s.on) { if (s.base) { swSet(s.el, 0, false); swEat = true; } return; }   // a tap on an open row just closes it
+  swEat = true;
+  const w = s.el.querySelector(".acts").offsetWidth, open = s.x < -w / 2;
+  swSet(s.el, open ? -w : 0, open);
+};
+document.addEventListener("pointerup", swEnd);
+document.addEventListener("pointercancel", swEnd);
+// the click that ends a swipe must not also open the row
+document.addEventListener("click", ev => { if (swEat) { swEat = false; ev.stopPropagation(); ev.preventDefault(); } }, true);
+document.addEventListener("pointerdown", () => { swEat = false; }, true);
+// delete asks for a second tap on the same button
+const armed = el => { if (el.dataset.armed) return true; el.dataset.armed = "1"; el.dataset.label = el.textContent; el.textContent = "Emin misin?"; setTimeout(() => { if (el.isConnected) { delete el.dataset.armed; el.textContent = el.dataset.label; } }, 3000); return false; };
 
 function evRow(e, d, opts = {}){
   const nowM = new Date().getHours()*60 + new Date().getMinutes();
@@ -1013,10 +1351,11 @@ function evRow(e, d, opts = {}){
     const came = (e.att[d]||[]).length;
     meta = [meta, `${e.students.length} kişi${came ? ` · ${came} geldi` : ""}`].filter(Boolean).join(" · ");
   }
-  return `<button class="ev${cls}" style="${tvar(e.type)}" data-open-ev="${e.id}" data-day="${d}">
+  return swipeRow(`<button class="ev${cls}" style="${tvar(e.type)}" data-open-ev="${e.id}" data-day="${d}">
     <div class="time">${esc(e.start)}<span>${esc(e.end)}</span></div>
     <div class="body"><div class="title">${esc(e.title)}</div>${meta ? `<div class="meta">${esc(meta)}</div>` : ""}</div>
-    <span class="tag">${TYPES[e.type]?.ad || ""}</span></button>`;
+    <span class="tag">${TYPES[e.type]?.ad || ""}</span></button>`,
+    `<button class="sa ed" data-open-ev="${e.id}" data-day="${d}">Düzenle</button><button class="sa del" data-del-ev="${e.id}" data-day="${d}">${e.repeat === "weekly" ? "Bu günü sil" : "Sil"}</button>`);
 }
 function dueChip(t){
   if (t.done) return `<span class="due">Bitti</span>`;
@@ -1028,12 +1367,11 @@ function dueChip(t){
 }
 const checkSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>`;
 function taskRow(t){
-  return `<div class="task${t.done ? " done" : ""}">
+  return swipeRow(`<div class="task${t.done ? " done" : ""}">
     <button class="check${t.done ? " on" : ""}" data-toggle-task="${t.id}" aria-label="${t.done ? "Tamamlanmadı olarak işaretle" : "Tamamlandı olarak işaretle"}">${t.done ? checkSvg : ""}</button>
-    <div class="body"><div class="title">${esc(t.title)}</div><div class="small muted">${esc(TASKKINDS[t.kind])}${t.course ? " · " + esc(t.course) : ""} · ${fmtShort(t.due)}${t.time ? " · " + esc(t.time) : ""}</div>${t.note ? `<div class="small muted">${esc(t.note)}</div>` : ""}</div>
+    <button class="body" data-open-task="${t.id}"><div class="title">${esc(t.title)}</div><div class="small muted">${esc(TASKKINDS[t.kind])}${t.course ? " · " + esc(t.course) : ""} · ${fmtShort(t.due)}${t.time ? " · " + esc(t.time) : ""}</div>${t.note ? `<div class="small muted">${esc(t.note)}</div>` : ""}</button>
     ${dueChip(t)}
-    <button class="iconbtn" data-open-task="${t.id}" aria-label="Düzenle">${editSvg}</button>
-  </div>`;
+  </div>`, `<button class="sa ok" data-toggle-task="${t.id}">${t.done ? "Geri al" : "Bitti"}</button><button class="sa ed" data-open-task="${t.id}">Düzenle</button><button class="sa del" data-del-task="${t.id}">Sil</button>`);
 }
 
 function cycleCard(){
@@ -1243,17 +1581,26 @@ function renderPrograms(){
   openProg = null;
 }
 let openProg = null;
+const starBtn = name => `<button class="star${isFav(name) ? " on" : ""}" data-fav="${esc(name)}" aria-pressed="${isFav(name)}" aria-label="Favori">★</button>`;
 function moveItem(m, add){
+  if (!add) return `<div class="move tap"><button class="open" data-move-detail="${esc(m.name)}"><div class="body"><div class="nm">${esc(m.name)}<span class="mini">${esc(m.level)}</span>${m.own ? `<span class="mini own">Benim</span>` : ""}</div><p>${esc(m.desc || "Açıklama yok.")}</p></div>${chevSvg}</button>${starBtn(m.name)}</div>`;
   return `<div class="move"><div class="body"><div class="nm">${esc(m.name)}<span class="mini">${esc(m.level)}</span>${add ? `<span class="mini">${esc(m.equip)}</span>` : ""}${m.own ? `<span class="mini own">Benim</span>` : ""}</div><p>${esc(m.desc || "Açıklama yok.")}</p></div>
     ${add ? `<button type="button" class="add" data-addmove="${esc(m.name)}">+ Ekle</button>` : m.own ? `<button class="iconbtn" data-open-move="${m.id}" aria-label="Hareketi düzenle">${editSvg}</button>` : ""}</div>`;
 }
-function filterMoves(eq, q){
+const isFav = name => !!(state.favMoves || {})[name];
+// own moves carry no risk marks, so every health filter hides them
+const hiddenFor = m => m.mk === undefined ? HEALTH.map(h => h[0]) : HEALTH.filter(([, , bad]) => [...m.mk].some(c => bad.includes(c))).map(h => h[0]);
+// opts (the Hareketler page only): level, region, favourites only, health conditions
+function filterMoves(eq, q, opts = {}){
   const v = low(q).trim();
-  return allMoves().filter(m => (eq === "Tümü" || m.equip === eq) && (!v || low(m.name).includes(v) || low(m.desc).includes(v)));
+  return allMoves().filter(m => (eq === "Tümü" || m.equip === eq) && (!v || low(m.name).includes(v) || low(m.desc).includes(v) || low((m.info || []).join(" ")).includes(v))
+      && (!opts.lv || m.level === opts.lv) && (!opts.rg || (m.rg || "").includes(opts.rg)) && (!opts.fav || isFav(m.name))
+      && (!opts.health || !opts.health.length || !hiddenFor(m).some(h => opts.health.includes(h))))
+    .sort((a, b) => isFav(b.name) - isFav(a.name));
 }
 function drawMoves(){
   const box = document.getElementById("mvList"); if (!box) return;
-  const list = filterMoves(mvEq, mvQ);
+  const list = filterMoves(mvEq, mvQ, {lv: mvLv, rg: mvRg, fav: mvFav, health: mvHealth});
   const groups = mvEq === "Tümü" ? EQUIP.map(e => [e, list.filter(m => m.equip === e)]).filter(g => g[1].length) : [[mvEq, list]];
   box.innerHTML = list.length ? groups.map(([e, ms]) => `<div class="grp"><div class="label" style="margin-bottom:6px">${esc(e)} · ${ms.length}</div><div class="lib">${ms.map(m => moveItem(m)).join("")}</div></div>`).join("")
     : `<div class="empty">Bu aramayla eşleşen hareket yok. Listede olmayan bir hareketi “Hareket ekle” ile kendin ekleyebilirsin.</div>`;
@@ -1262,12 +1609,22 @@ function renderMoves(){
   view.innerHTML = `
     <div style="margin-top:8px">${stuSeg()}</div>
     <div class="section" style="margin-top:14px"><div class="section-head"><h2>Pilates hareketleri</h2><button class="btn sm ghost" data-new-move>Hareket ekle</button></div>
-      <div class="small muted">${allMoves().length} hareket, alet ve seviyeye göre kısa tarifleriyle. Program oluştururken bu listeden seçebilirsin.</div>
+      <div class="small muted">${allMoves().length} hareket. Odak, çalışan kaslar, doz, nefes, sık hatalar ve seviye ayarı için harekete dokun. Program oluştururken bu listeden seçebilirsin.</div>
       <input class="input" id="mvQ" type="search" placeholder="Hareket ya da kas grubu ara…" value="${esc(mvQ)}" aria-label="Hareket ara">
-      <div class="chips">${["Tümü", ...EQUIP].map(e => `<button class="chip" style="${tvar("pilates")}" data-mveq="${e}" aria-pressed="${mvEq === e}">${e}</button>`).join("")}</div>
+      <div class="chips"><button class="chip" style="${tvar("ozel")}" data-mvfav aria-pressed="${mvFav}">★ Favoriler</button>${["Tümü", ...EQUIP].map(e => `<button class="chip" style="${tvar("pilates")}" data-mveq="${e}" aria-pressed="${mvEq === e}">${e}</button>`).join("")}</div>
+      <details class="mvf" ${mvMore || mvLv || mvRg || mvHealth.length ? "open" : ""}><summary>Daha fazla süzgeç${mvLv || mvRg || mvHealth.length ? ` <span class="mini">${[mvLv, mvRg].filter(Boolean).length + mvHealth.length} açık</span>` : ""}</summary>
+        <div class="label">Seviye</div>
+        <div class="chips">${["Başlangıç", "Orta", "İleri"].map(l => `<button class="chip" data-mvlv="${l}" aria-pressed="${mvLv === l}">${l}</button>`).join("")}</div>
+        <div class="label">Bölge</div>
+        <div class="chips">${REGIONS.map(([k, n]) => `<button class="chip" data-mvrg="${k}" aria-pressed="${mvRg === k}">${n}</button>`).join("")}</div>
+        <div class="label">Sağlık durumu: uygun olmayanları gizle</div>
+        <div class="chips">${HEALTH.map(([k, n]) => `<button class="chip" style="${tvar("danisan")}" data-mvhealth="${k}" aria-pressed="${mvHealth.includes(k)}">${n}</button>`).join("")}</div>
+        ${mvHealth.length ? `<div class="banner"><span class="grow">Genel Pilates önerilerine göre bu durumda kaçınılması önerilen hareketler gizlendi. Kalanlar herkes için güvenli demek değildir; hekim ya da fizyoterapist onayı ve kişiye özel değerlendirme gerekir. Kendi eklediğin hareketlerde risk bilgisi olmadığı için bu süzgeç açıkken onlar gösterilmez.</span></div>` : ""}
+      </details>
       <div id="mvList"></div></div>`;
   drawMoves();
   document.getElementById("mvQ").addEventListener("input", ev => { mvQ = ev.target.value; drawMoves(); });
+  view.querySelector(".mvf").addEventListener("toggle", ev => { mvMore = ev.target.open; });
 }
 function lastVisit(id){
   let last = "";
@@ -1861,6 +2218,35 @@ function programSheet(id){
     }, true);
 }
 
+const MV_ICONS = {
+  odak:`<path d="M12 21a9 9 0 1 1 9-9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><path d="m14 10 6-6M17 4h3v3"/>`,
+  kas:`<path d="M6 19c-1.5-3-1-7 2-10l2-4h3l-1 4c3 0 6 2 7 5 0 3-3 5-6 5H6z"/>`,
+  doz:`<path d="M20 12a8 8 0 0 1-14 5.3M4 12A8 8 0 0 1 18 6.7"/><path d="M18 3v4h-4M6 21v-4h4"/>`,
+  nefes:`<path d="M12 4v8m0 0c-1 2-3 3-5 3M12 12c1 2 3 3 5 3"/><path d="M8.5 8C5 8 3 12 3 16c0 2 1 4 3 4s3-1.5 3-4V9M15.5 8C19 8 21 12 21 16c0 2-1 4-3 4s-3-1.5-3-4V9"/>`,
+  hata:`<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/>`,
+  ayar:`<path d="M5 20v-6M12 20V9M19 20V4"/>`,
+  yon:`<circle cx="12" cy="7" r="3.5"/><path d="M5 21c.6-4.2 3.3-6.5 7-6.5s6.4 2.3 7 6.5"/>`,
+  dikkat:`<path d="M20 4c-9 0-15 4-15 11 0 2 .5 3.5 1.5 5 6-1 13-5 13.5-16z"/><path d="M6.5 20C9 15 12 12 16 9"/>`,
+};
+const mvIcon = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${MV_ICONS[k]}</svg>`;
+function moveDetailSheet(name){
+  const m = moveOf(name); if (!m) return;
+  const f = Object.fromEntries(INFO_FIELDS.map(([k], i) => [k, (m.info || [])[i] || ""]));
+  const card = (k, title, body, cls = "") => body ? `<div class="mvc ${cls}">${mvIcon(k)}<div><b>${title}</b>${body}</div></div>` : "";
+  const ayar = [f.kolay && `<b style="display:inline">Kolay:</b> ${esc(f.kolay)}`, f.ileri && `<b style="display:inline">İleri:</b> ${esc(f.ileri)}`].filter(Boolean).join("<br>");
+  const cards = [card("odak", "Odak", esc(f.odak)), card("kas", "Çalışan kaslar", esc(f.kas)), card("doz", "Doz", esc(f.doz)), card("nefes", "Nefes", esc(f.nefes)),
+    card("hata", "Sık yapılan hatalar", esc(f.hata), "warn"), card("ayar", "Seviye ayarı", ayar), card("yon", "Eğitmen yönergesi", esc(f.yon)), card("dikkat", "Dikkat", esc(f.dikkat), "safe")].filter(Boolean);
+  openSheet(`
+    <div class="head"><h2>${esc(m.name)}</h2><span class="sp"></span>${starBtn(m.name)}${closeBtn}</div>
+    <div class="mvd field" style="gap:14px">
+      <div class="tags"><span>${esc(m.level)}</span><span class="eq">${esc(m.equip)}</span>${m.own ? `<span style="background:var(--t-danisan)">Benim</span>` : ""}</div>
+      ${m.desc ? `<div class="how"><div class="label" style="margin-bottom:4px">Nasıl yapılır</div>${esc(m.desc)}</div>` : ""}
+      ${cards.length ? `<div class="mvgrid">${cards.join("")}</div>` : `<div class="small muted">Bu hareket için ayrıntı girilmemiş.${m.own ? " Düzenle'ye dokunup ekleyebilirsin." : ""}</div>`}
+      ${!m.own && hiddenFor(m).length ? `<div class="small muted">Sağlık süzgecinde gizlendiği durumlar: ${hiddenFor(m).map(h => HEALTH.find(x => x[0] === h)[1]).join(", ")}.</div>` : ""}
+      ${m.own ? `<div class="actions"><span class="sp"></span><button type="button" class="btn line" data-open-move="${m.id}">Düzenle</button></div>` : ""}
+    </div>`);
+}
+
 function moveSheet(id){
   const m = id ? state.customMoves.find(x => x.id === id) : null;
   const v = m ? {...m} : {name:"", equip: mvEq === "Tümü" ? "Mat" : mvEq, level:"Başlangıç", desc:""};
@@ -1872,6 +2258,8 @@ function moveSheet(id){
       <div class="field"><span>Alet</span><div class="chips" id="mv-eq">${EQUIP.map(e => `<button type="button" class="chip" style="${tvar("pilates")}" data-v="${e}" aria-pressed="${e===equip}">${e}</button>`).join("")}</div></div>
       <div class="field"><span>Seviye</span><div class="chips" id="mv-lv">${MOVE_LEVELS.map(l => `<button type="button" class="chip" data-v="${l}" aria-pressed="${l===level}">${l}</button>`).join("")}</div></div>
       <label class="field"><span>Kısa tarif</span><textarea class="input" id="mv-desc" placeholder="Başlangıç pozisyonu, hareket, nefes ve dikkat edilecek nokta…">${esc(v.desc)}</textarea></label>
+      <details class="field" ${(v.info || []).some(Boolean) ? "open" : ""}><summary style="font-weight:700;cursor:pointer">Ayrıntılar (isteğe bağlı)</summary>
+        <div class="field" style="gap:10px;margin-top:10px">${INFO_FIELDS.map(([k, n], i) => `<label class="field"><span>${n}</span><input class="input" data-info="${i}" value="${esc((v.info || [])[i] || "")}"></label>`).join("")}</div></details>
       <div id="mv-confirm"></div>
       <div class="actions">${m ? `<button type="button" class="btn danger sm" id="mv-del">Sil</button>` : ""}<span class="sp"></span><button type="button" class="btn line" data-close>Vazgeç</button><button class="btn" type="submit">Kaydet</button></div>
     </form>`, sh => {
@@ -1879,7 +2267,7 @@ function moveSheet(id){
       pick("#mv-eq", x => equip = x); pick("#mv-lv", x => level = x);
       sh.querySelector("#mvForm").addEventListener("submit", ev => {
         ev.preventDefault();
-        const data = {name:sh.querySelector("#mv-name").value.trim(), equip, level, desc:sh.querySelector("#mv-desc").value.trim()};
+        const data = {name:sh.querySelector("#mv-name").value.trim(), equip, level, desc:sh.querySelector("#mv-desc").value.trim(), info:[...sh.querySelectorAll("[data-info]")].map(x => x.value.trim())};
         const clash = moveOf(data.name);
         if (clash && clash.id !== id) { toast("Bu isimde bir hareket zaten var"); return; }
         if (m) Object.assign(m, data); else state.customMoves.push({id:uid(), ...data});
@@ -2423,6 +2811,14 @@ document.addEventListener("click", ev => {
   if (el.hasAttribute("data-new-stu")) { studentSheet(null); return; }
   if (d.openStu) { studentSheet(d.openStu); return; }
   if (d.viewStu) { studentView(d.viewStu); return; }
+  if (d.delTask) { if (!armed(el)) return; state.tasks = state.tasks.filter(x => x.id !== d.delTask); save(); render(); toast("Silindi"); return; }
+  if (d.delEv) {
+    if (!armed(el)) return;
+    const e = state.events.find(x => x.id === d.delEv); if (!e) return;
+    if (e.repeat === "weekly") { e.skip = [...(e.skip || []), d.day]; toast(fmtShort(d.day) + " kaldırıldı"); }
+    else { state.events = state.events.filter(x => x !== e); toast("Silindi"); }
+    save(); render(); return;
+  }
   if (d.toggleTask) { const t = state.tasks.find(x => x.id === d.toggleTask); t.done = !t.done; save(); render(); return; }
   if (d.renew) {
     const s = state.students.find(x => x.id === d.renew);
@@ -2441,9 +2837,22 @@ document.addEventListener("click", ev => {
   if (d.week !== undefined) { weekStart = d.week === "0" ? mondayOf(today()) : addDays(weekStart, 7 * +d.week); render(); return; }
   if (d.sel) { selDay = d.sel; if (d.sel.slice(0,7) !== monthCursor) monthCursor = d.sel.slice(0,7); render(); return; }
   if (d.stumode) { stuMode = d.stumode; render(); return; }
+  if ("mvfav" in d) { mvFav = !mvFav; renderMoves(); return; }
+  if (d.mvlv) { mvLv = mvLv === d.mvlv ? "" : d.mvlv; renderMoves(); return; }
+  if (d.mvrg) { mvRg = mvRg === d.mvrg ? "" : d.mvrg; renderMoves(); return; }
+  if (d.mvhealth) { mvHealth = mvHealth.includes(d.mvhealth) ? mvHealth.filter(x => x !== d.mvhealth) : [...mvHealth, d.mvhealth]; renderMoves(); return; }
+  if (d.fav) {
+    const f = state.favMoves = state.favMoves || {};
+    if (f[d.fav]) delete f[d.fav]; else f[d.fav] = true;
+    save();
+    document.querySelectorAll(".star[data-fav]").forEach(b => { if (b.dataset.fav === d.fav) { b.classList.toggle("on", isFav(d.fav)); b.setAttribute("aria-pressed", isFav(d.fav)); } });
+    if (tab === "ogrenciler" && stuMode === "hareket" && mvFav) drawMoves();
+    toast(isFav(d.fav) ? "Favorilere eklendi" : "Favorilerden çıkarıldı"); return;
+  }
   if (d.mveq) { mvEq = d.mveq; document.querySelectorAll("[data-mveq]").forEach(c => c.setAttribute("aria-pressed", c.dataset.mveq === mvEq)); drawMoves(); return; }
   if (el.hasAttribute("data-new-move")) { moveSheet(null); return; }
-  if (d.openMove) { moveSheet(d.openMove); return; }
+  if (d.openMove) { if (slot.innerHTML) closeSheet(); moveSheet(d.openMove); return; }
+  if (d.moveDetail) { moveDetailSheet(d.moveDetail); return; }
   if (el.hasAttribute("data-new-prog")) { programSheet(null); return; }
   if (d.openProg) { programSheet(d.openProg); return; }
   if (d.viewProg) { if (slot.innerHTML) closeSheet(); tab = "ogrenciler"; stuMode = "program"; openProg = d.viewProg; render(); const c = document.getElementById("prog-" + d.viewProg); c && c.scrollIntoView({block:"center"}); return; }
