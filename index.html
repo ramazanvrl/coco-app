@@ -433,7 +433,7 @@ body{margin:0}
 <div id="sheetSlot"></div>
 <div id="toastSlot"></div>
 
-<script>window.COCO_DIRECT = {"iv":"jFutwzcQgJxv+rjf","ct":"wPDsJU2Y2vI7XKySMbLS+QfpFTYJRnxII7QQQ50OnuTlmg+m6DCbBID6mQIJn7uOrysEP4YPUch7lZ8bl1pK4QopcIqI1u8dfC8Nk0J7BoP9G5qQxybK/dBFYkBsUC89nGAxVJCx3zwDLRxR8yq2oXveImc/oIeuEQk4yijwFthCoAQA671o7sJ+SVQaT+brfKRvmf63wSS+ECevnhd3rzwGXpPV","t":"coco"};</script>
+<script>window.COCO_DIRECT = {"iv":"mhShVrCMsNoPHATX","ct":"2S9aCMsA9ZdmeB2a4aWomBrWbhC3yWqYbHQZjID9rR/O1rquhVb9q2kSe7sgbr3kHY/CkxKt9jB2mBnixt2BFkZqhpMghLKTJ0SwUXMZe9ea5kPst2ubLHtjz2T41fGtWufT/eEfR/efAawQp4h+sdRuf1Rp2XKbs7juOaEfU51x4omZ45/FSXoJLOyVNG1OYPBEXDy2ZVlQFRfEdAVLx92lVLK0","t":"coco"};</script>
 <script>
 (() => {
 // ---------- types ----------
@@ -1283,7 +1283,19 @@ const editSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
 const xSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>`;
 const chevSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m9 5 7 7-7 7"/></svg>`;
 
+// The home-screen app can stay open for days. When the date changes, views that were showing
+// "today" move to the new day, so nothing (like the evening evaluation) is saved under yesterday.
+let shownDay = today();
+function rollDay(){
+  const t = today(); if (t === shownDay) return false;
+  if (evalDay === shownDay) evalDay = t;
+  if (selDay === shownDay) selDay = t;
+  if (weekStart === mondayOf(shownDay)) weekStart = mondayOf(t);
+  if (monthCursor === shownDay.slice(0,7)) monthCursor = t.slice(0,7);
+  shownDay = t; return true;
+}
 function render(){
+  rollDay();
   document.getElementById("hdrDate").textContent = fmtLong(today());
   setPill(pillMode());
   document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-current", b.dataset.tab === tab ? "page" : "false"));
@@ -2907,6 +2919,8 @@ document.addEventListener("submit", ev => {
 });
 document.getElementById("backupBtn").addEventListener("click", backupSheet);
 document.getElementById("bellBtn").addEventListener("click", pushSheet);
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && rollDay()) render(); });
+setInterval(() => { if (rollDay()) render(); }, 60000);
 pushSync();
 document.getElementById("syncPill").addEventListener("click", () => {
   if (sync.key) { sync.run(); toast("Diğer cihazdaki değişikliklere bakılıyor"); }
